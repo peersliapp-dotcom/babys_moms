@@ -13,6 +13,8 @@ export default function Navbar() {
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<Product[]>([])
   const [searchLoading, setSearchLoading] = useState(false)
+  const [logoError, setLogoError] = useState(false)
+  const [logoLoaded, setLogoLoaded] = useState(false)
   const [settings, setSettings] = useState<SiteSettings | null>(null)
   const { itemCount } = useCart()
   const { session, profile } = useAuth()
@@ -32,6 +34,13 @@ export default function Navbar() {
       setSettings(data as SiteSettings | null)
     })
   }, [])
+
+  const logoUrl = settings?.logo_url ?? '/bmlogonew2.png'
+
+  useEffect(() => {
+    setLogoError(false)
+    setLogoLoaded(false)
+  }, [logoUrl])
 
   // Live search with debounce
   useEffect(() => {
@@ -83,8 +92,6 @@ export default function Navbar() {
     { label: t('nav.contact'), path: '/contact' },
   ]
 
-  const logoUrl = settings?.logo_url ?? '/bmlogonew2.png'
-
   return (
     <>
       <header
@@ -102,10 +109,31 @@ export default function Navbar() {
               {mobileOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
             <Link to="/" className="flex items-center gap-2 sm:gap-3">
-              <img src={logoUrl} alt="Baby's and Mom's Clothing" className="h-10 w-auto" />
-              <span className="brand-title hidden sm:inline text-base lg:text-lg xl:text-xl">
-                Baby&rsquo;s &amp; Mom&rsquo;s
-              </span>
+              {logoError ? (
+                <span className="brand-title text-base lg:text-lg xl:text-xl">
+                  Baby&rsquo;s &amp; Mom&rsquo;s
+                </span>
+              ) : (
+                <>
+                  <div className="relative h-10 w-auto min-w-[40px]">
+                    {!logoLoaded && (
+                      <div className="logo-skeleton absolute inset-0 min-w-[40px] rounded-full" />
+                    )}
+                    <img
+                      src={logoUrl}
+                      alt=""
+                      className={`h-10 w-auto transition-opacity duration-500 ${
+                        logoLoaded ? 'opacity-100' : 'opacity-0'
+                      }`}
+                      onLoad={() => setLogoLoaded(true)}
+                      onError={() => setLogoError(true)}
+                    />
+                  </div>
+                  <span className="brand-title hidden sm:inline text-base lg:text-lg xl:text-xl">
+                    Baby&rsquo;s &amp; Mom&rsquo;s
+                  </span>
+                </>
+              )}
             </Link>
           </div>
 

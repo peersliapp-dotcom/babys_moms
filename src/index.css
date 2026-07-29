@@ -48,6 +48,11 @@
     -webkit-text-fill-color: transparent;
     animation: brandShine 3s ease-in-out infinite;
   }
+  .logo-skeleton {
+    background: linear-gradient(110deg, #FBE6E9 0%, #FDF2F4 25%, #F5E8D3 50%, #FDF2F4 75%, #FBE6E9 100%);
+    background-size: 200% 100%;
+    animation: skeletonShimmer 1.8s ease-in-out infinite;
+  }
 }
 
 @layer utilities {
@@ -75,4 +80,9 @@
 @keyframes brandShine {
   0%, 100% { background-position: 100% center; }
   50% { background-position: 0% center; }
+}
+
+@keyframes skeletonShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
