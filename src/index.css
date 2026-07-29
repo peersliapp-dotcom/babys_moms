@@ -39,6 +39,15 @@
   .text-gradient {
     @apply bg-gradient-to-r from-wine-700 via-rose-500 to-gold-500 bg-clip-text text-transparent;
   }
+  .brand-title {
+    @apply font-serif font-semibold whitespace-nowrap;
+    background: linear-gradient(135deg, #6B2737 0%, #A82D3F 30%, #C9A66B 50%, #A82D3F 70%, #6B2737 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: brandShine 3s ease-in-out infinite;
+  }
 }
 
 @layer utilities {
@@ -61,4 +70,9 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
+}
+
+@keyframes brandShine {
+  0%, 100% { background-position: 100% center; }
+  50% { background-position: 0% center; }
 }

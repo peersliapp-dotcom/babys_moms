@@ -101,8 +101,11 @@ export default function Navbar() {
             >
               {mobileOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
-            <Link to="/" className="flex items-center gap-2">
+            <Link to="/" className="flex items-center gap-2 sm:gap-3">
               <img src={logoUrl} alt="Baby's and Mom's Clothing" className="h-10 w-auto" />
+              <span className="brand-title hidden sm:inline text-base lg:text-lg xl:text-xl">
+                Baby&rsquo;s &amp; Mom&rsquo;s
+              </span>
             </Link>
           </div>
 
