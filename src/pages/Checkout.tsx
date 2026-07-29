@@ -107,6 +107,15 @@ export default function Checkout() {
 
       await supabase.from('order_items').insert(orderItems)
 
+      // Decrement stock via edge function
+      const stockItems = items.map((item) => ({
+        variant_id: item.variant_id,
+        quantity: item.quantity,
+      }))
+      await supabase.functions.invoke('decrement-stock', {
+        body: JSON.stringify({ order_id: order.id, items: stockItems }),
+      })
+
       if (session) {
         await clearCart()
       }

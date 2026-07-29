@@ -122,10 +122,14 @@
   coupon_code text,
   shipping_address jsonb not null,
   notes text,
+  courier_name text,
+  courier_tracking_id text,
+  courier_consignment_id text,
+  courier_status text,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
   ```
-- **RLS**: Authenticated users see their own orders. Admins see all orders.
+- **RLS**: Authenticated users see their own orders. Admins see all orders. Guest (anon) can insert/select orders where user_id is null.
 
 ### 🛠️ public.order_items
 - **Core Purpose**: Line items within each order (product snapshot at time of purchase).
@@ -170,7 +174,7 @@
   created_at timestamptz default now(),
   unique(user_id, product_id)
   ```
-- **RLS**: Public read (approved only). Authenticated insert (own). Admin full CRUD.
+- **RLS**: Public read (approved only). Authenticated insert (own). Admin full CRUD (select all including unapproved, update for approve/reject, delete).
 
 ### 🛠️ public.coupons
 - **Core Purpose**: Discount coupon codes with rules (percentage, flat, free shipping, min order).
@@ -219,6 +223,11 @@
   facebook_url text,
   youtube_url text,
   twitter_url text,
+  hero_image_url text,
+  hero_mobile_image_url text,
+  pathao_api_key text,
+  steadfast_api_key text,
+  courier_provider text default 'manual',
   created_at timestamptz default now(),
   updated_at timestamptz default now()
   ```
@@ -238,12 +247,17 @@
 | **002** | `seed_categories_and_products` | Seed initial categories (Baby/Mom + sub-categories) and demo products with variants | **Deployed** ✅ |
 | **003** | `create_storage_bucket` | Storage bucket `product-images` with public read + admin write policies | **Deployed** ✅ |
 | **004** | `create_site_settings_and_review_policy` | site_settings table for logo/contact/social management. Updated reviews SELECT policy for anon read of approved reviews. | **Deployed** ✅ |
+| **005** | `fix_guest_checkout_and_hero_image` | Guest checkout RLS fix (anon order_items insert/select). Added hero_image_url + hero_mobile_image_url to site_settings. | **Deployed** ✅ |
+| **006** | `fix_customer_list_courier_reviews_policies` | Admin profiles SELECT policy (see all customers). Courier columns on orders. Courier API key columns on site_settings. Review admin policies (select all, update, delete). Orders admin update policy. | **Deployed** ✅ |
 
 ---
 
 ## Part 3: Pending Changes & Active DB Constraints
 
-- **Next Schema Modification**: Phase 2 will add: `loyalty_points` table, `notifications` table, multi-language `translations` table.
+- **Next Schema Modification**: Phase 3 will add: `loyalty_points` table, `notifications` table, `translations` table for full i18n, `sms_logs` table.
+- **Edge Functions Deployed**:
+  - `decrement-stock`: Atomically decrements product variant stock on checkout. Called after order insertion.
+  - `courier-integration`: Creates shipments via Pathao/Steadfast API and tracks shipment status. Reads API keys from site_settings.
 - **Enforced Architectural Constraints**:
   - Always use `timestamptz` (timestamp with time zone) for all time columns.
   - All foreign keys include explicit cascading rules (`ON DELETE CASCADE` or `SET NULL`).

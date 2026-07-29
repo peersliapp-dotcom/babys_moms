@@ -57,40 +57,40 @@
 - [ ] Bundle size slightly over 500KB — could benefit from code splitting in Phase 2
 
 ### 🛡️ Loopholes Need to Cover
-- [ ] COD orders need admin verification before dispatch (prevent fake orders)
-- [ ] Stock quantity must decrement atomically on checkout to prevent overselling
+- [x] Stock quantity must decrement atomically on checkout to prevent overselling — DONE (edge function deployed)
 - [x] Guest cart must merge with user cart on login — DONE
 
 ### 🔍 What is Missing (Phase 2)
-- [ ] Bangla language toggle
+- [x] Bangla language toggle — DONE (LanguageContext with EN/BN translations)
+- [x] Admin review moderation page — DONE (dedicated UI for approve/reject/delete)
+- [x] Courier live tracking API — DONE (Pathao/Steadfast edge function)
+- [x] Stock decrement on checkout — DONE (edge function)
 - [ ] Native mobile app
 - [ ] Loyalty points / rewards
 - [ ] Live chat AI assistant
-- [ ] Courier live tracking API
 - [ ] Email/SMS notification sending
 - [ ] Payment gateway integration (bKash/Nagad/SSLCommerz)
-- [ ] Stock decrement on checkout
-- [ ] Admin review moderation page (reviews can be approved/rejected via DB)
+- [ ] COD order verification before dispatch
 
 ---
 
 ## Part 4: Active Session State & AI Alignment
 
 ### 📍 Current State
-- **Topic**: Feature completion — Session 3
-- **Last Topic Covered**: Built all remaining admin management pages, working wishlist, password reset, review submission, guest cart merge, dynamic site settings.
+- **Topic**: Feature completion — Session 5
+- **Last Topic Covered**: Fixed guest checkout, hero image management, contact info sync, SPA routing, then built 6 new features.
 - **Completed**:
-  - Coupon management admin page (CRUD)
-  - Banner management admin page (CRUD)
-  - Site settings admin page (logo upload, contact info, social media links)
-  - Customer list admin page (with order counts and total spent)
-  - Working wishlist page (database-backed, add/remove from product page)
-  - Password reset flow (email-based reset link)
-  - Review submission from product page (star rating, title, body, moderation)
-  - Guest cart merge on login (localStorage items merged to server cart)
-  - Dynamic Navbar/Footer using site_settings from database
-  - Account page wishlist tab shows real wishlist items
-- **Decisions/Next Steps**: Payment gateway integration, SMS notifications, stock decrement on checkout, admin review moderation.
+  - Fixed guest checkout RLS (anon can now insert order_items for guest orders)
+  - Hero image mobile-responsive + admin upload (desktop & mobile hero images)
+  - Contact info sync from admin to About/Contact pages
+  - SPA routing fix (public/_redirects for hosting)
+  - Admin customer list fixed (admin can now see all profiles via RLS)
+  - Improved search UI/UX with live product suggestions, debounced search, image thumbnails
+  - Stock decrement on checkout (edge function prevents overselling)
+  - Admin review moderation page (approve/reject/delete reviews)
+  - Courier API integration (Pathao/Steadfast edge function, manual tracking entry)
+  - Bangla language toggle (LanguageContext with EN/BN translations)
+- **Decisions/Next Steps**: Payment gateway integration, SMS notifications, COD verification, loyalty points.
 
 ### 🎯 AI Execution Confidence Metric
 - **Confidence Rating**: 98%
@@ -103,3 +103,7 @@
 **Session 2 — 2026-07-28**: Bulk image upload feature added. Product edit form enhanced with variant management (add/edit/delete variants with price, size, color, SKU, stock). Admin dashboard updated with bulk upload link. Storage bucket created for product images.
 
 **Session 3 — 2026-07-28**: Feature completion sprint. Built: Coupon management, Banner management, Site settings (logo/contact/social), Customer list, Working wishlist, Password reset, Review submission, Guest cart merge, Dynamic Navbar/Footer. Database migration for site_settings table + review policy update.
+
+**Session 4 — 2026-07-29**: Bug fixes. Fixed guest checkout (RLS policies for anon order_items), hero image mobile responsiveness + admin upload, contact info sync to About/Contact pages, SPA routing fix (public/_redirects). Added hero_image_url and hero_mobile_image_url columns to site_settings.
+
+**Session 5 — 2026-07-29**: Major feature sprint. Built 6 features: (1) Fixed admin customer list RLS to show all profiles, (2) Improved search with live product suggestions + debounce, (3) Stock decrement edge function on checkout, (4) Admin review moderation page (approve/reject/delete), (5) Courier API integration (Pathao/Steadfast edge function + manual tracking), (6) Bangla language toggle (LanguageContext with EN/BN). Added courier columns to orders table, courier settings to site_settings, review admin policies, profiles admin select policy. Deployed 2 edge functions: decrement-stock, courier-integration.

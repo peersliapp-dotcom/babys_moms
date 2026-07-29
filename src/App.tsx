@@ -20,6 +20,8 @@ import AdminCoupons from './pages/admin/AdminCoupons'
 import AdminBanners from './pages/admin/AdminBanners'
 import AdminSettings from './pages/admin/AdminSettings'
 import AdminCustomers from './pages/admin/AdminCustomers'
+import AdminReviews from './pages/admin/AdminReviews'
+import AdminCourier from './pages/admin/AdminCourier'
 import About from './pages/About'
 import SizeGuide from './pages/SizeGuide'
 import ShippingPolicy from './pages/ShippingPolicy'
@@ -113,6 +115,14 @@ export default function App() {
           <Route
             path="/admin/customers"
             element={<AdminRoute><AdminCustomers /></AdminRoute>}
+          />
+          <Route
+            path="/admin/reviews"
+            element={<AdminRoute><AdminReviews /></AdminRoute>}
+          />
+          <Route
+            path="/admin/courier"
+            element={<AdminRoute><AdminCourier /></AdminRoute>}
           />
           <Route path="*" element={<NotFound />} />
         </Routes>

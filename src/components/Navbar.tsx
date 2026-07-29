@@ -1,19 +1,25 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { ShoppingBag, Heart, User, Menu, X, Search } from 'lucide-react'
+import { ShoppingBag, Heart, User, Menu, X, Search, Globe } from 'lucide-react'
 import { useCart } from '../contexts/CartContext'
 import { useAuth } from '../contexts/AuthContext'
-import { supabase, type SiteSettings } from '../lib/supabase'
+import { useLanguage } from '../contexts/LanguageContext'
+import { supabase, type SiteSettings, type Product } from '../lib/supabase'
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState<Product[]>([])
+  const [searchLoading, setSearchLoading] = useState(false)
   const [settings, setSettings] = useState<SiteSettings | null>(null)
   const { itemCount } = useCart()
   const { session, profile } = useAuth()
+  const { lang, toggleLang, t } = useLanguage()
   const navigate = useNavigate()
+  const searchRef = useRef<HTMLDivElement>(null)
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20)
@@ -27,22 +33,54 @@ export default function Navbar() {
     })
   }, [])
 
+  // Live search with debounce
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    if (!searchQuery.trim()) {
+      setSearchResults([])
+      return
+    }
+    setSearchLoading(true)
+    debounceRef.current = setTimeout(async () => {
+      const { data } = await supabase
+        .from('products')
+        .select('*, category:categories(*), variants:product_variants(*)')
+        .eq('is_active', true)
+        .or(`name.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`)
+        .limit(6)
+      setSearchResults((data as Product[]) ?? [])
+      setSearchLoading(false)
+    }, 250)
+  }, [searchQuery])
+
+  // Close search on outside click
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setSearchOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', onClick)
+    return () => document.removeEventListener('mousedown', onClick)
+  }, [])
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     if (searchQuery.trim()) {
       navigate(`/shop?q=${encodeURIComponent(searchQuery.trim())}`)
       setSearchOpen(false)
       setSearchQuery('')
+      setSearchResults([])
     }
   }
 
   const navLinks = [
-    { label: 'Home', path: '/' },
-    { label: 'Baby', path: '/shop/baby' },
-    { label: 'Mom', path: '/shop/mom' },
-    { label: 'Shop All', path: '/shop' },
-    { label: 'About', path: '/about' },
-    { label: 'Contact', path: '/contact' },
+    { label: t('nav.home'), path: '/' },
+    { label: t('nav.baby'), path: '/shop/baby' },
+    { label: t('nav.mom'), path: '/shop/mom' },
+    { label: t('nav.shopAll'), path: '/shop' },
+    { label: t('nav.about'), path: '/about' },
+    { label: t('nav.contact'), path: '/contact' },
   ]
 
   const logoUrl = settings?.logo_url ?? '/bmlogonew2.png'
@@ -85,9 +123,13 @@ export default function Navbar() {
             <button onClick={() => setSearchOpen(!searchOpen)} className="text-wine-700 hover:text-blush-500 transition-colors" aria-label="Search">
               <Search size={20} />
             </button>
+            <button onClick={toggleLang} className="flex items-center gap-1 text-wine-700 hover:text-blush-500 transition-colors" aria-label="Switch language">
+              <Globe size={18} />
+              <span className="text-xs font-medium">{lang === 'en' ? 'বাংলা' : 'EN'}</span>
+            </button>
             {profile?.role === 'admin' && (
               <Link to="/admin" className="text-wine-700 hover:text-blush-500 transition-colors hidden sm:block">
-                <span className="text-xs font-medium">Admin</span>
+                <span className="text-xs font-medium">{t('nav.admin')}</span>
               </Link>
             )}
             <Link to={session ? '/account' : '/login'} className="text-wine-700 hover:text-blush-500 transition-colors">
@@ -108,20 +150,82 @@ export default function Navbar() {
         </nav>
 
         {searchOpen && (
-          <div className="absolute top-full left-0 right-0 bg-cream-50 border-t border-cream-300 shadow-lg animate-slide-down">
-            <form onSubmit={handleSearch} className="section-padding py-4">
-              <div className="relative">
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search for products..."
-                  className="w-full pl-12 pr-4 py-3 rounded-xl border border-cream-400 bg-white focus:outline-none focus:ring-2 focus:ring-blush-300"
-                  autoFocus
-                />
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-wine-400" size={20} />
-              </div>
-            </form>
+          <div ref={searchRef} className="absolute top-full left-0 right-0 bg-cream-50 border-t border-cream-300 shadow-lg animate-slide-down">
+            <div className="section-padding py-4">
+              <form onSubmit={handleSearch}>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder={t('search.placeholder')}
+                    className="w-full pl-12 pr-12 py-3 rounded-xl border border-cream-400 bg-white focus:outline-none focus:ring-2 focus:ring-blush-300"
+                    autoFocus
+                  />
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-wine-400" size={20} />
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => { setSearchQuery(''); setSearchResults([]) }}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-wine-400 hover:text-wine-600"
+                    >
+                      <X size={18} />
+                    </button>
+                  )}
+                </div>
+              </form>
+
+              {/* Live search results */}
+              {searchQuery.trim() && (
+                <div className="mt-3">
+                  {searchLoading ? (
+                    <div className="flex items-center gap-2 text-sm text-wine-400 py-4">
+                      <div className="w-4 h-4 border-2 border-wine-300 border-t-transparent rounded-full animate-spin" />
+                      {t('search.searching')}
+                    </div>
+                  ) : searchResults.length > 0 ? (
+                    <div className="space-y-1">
+                      <p className="text-xs text-wine-400 uppercase tracking-wide mb-2">{t('search.suggestions')}</p>
+                      {searchResults.map((product) => {
+                        const minPrice = product.variants?.length ? Math.min(...product.variants.map(v => v.price)) : 0
+                        return (
+                          <Link
+                            key={product.id}
+                            to={`/product/${product.slug}`}
+                            onClick={() => { setSearchOpen(false); setSearchQuery(''); setSearchResults([]) }}
+                            className="flex items-center gap-3 p-2 rounded-lg hover:bg-cream-100 transition-colors group"
+                          >
+                            {product.images?.[0] && (
+                              <img src={product.images[0]} alt={product.name} className="w-12 h-12 rounded-lg object-cover shrink-0" />
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-wine-800 truncate group-hover:text-blush-500 transition-colors">{product.name}</p>
+                              <p className="text-xs text-wine-400">{product.category?.name}</p>
+                            </div>
+                            <span className="text-sm font-semibold text-wine-700 shrink-0">৳{minPrice.toLocaleString()}</span>
+                          </Link>
+                        )
+                      })}
+                      <button
+                        onClick={() => {
+                          navigate(`/shop?q=${encodeURIComponent(searchQuery.trim())}`)
+                          setSearchOpen(false)
+                          setSearchQuery('')
+                          setSearchResults([])
+                        }}
+                        className="text-sm text-blush-500 hover:text-blush-600 font-medium pt-2 pb-1 block w-full text-left"
+                      >
+                        {t('search.viewAll')} "{searchQuery}" →
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="py-4 text-center">
+                      <p className="text-sm text-wine-400">{t('search.noResults')}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         )}
       </header>
@@ -138,12 +242,12 @@ export default function Navbar() {
               ))}
               {session && (
                 <Link to="/account" onClick={() => setMobileOpen(false)} className="text-lg font-medium text-wine-700 hover:text-blush-500 transition-colors py-2 border-b border-cream-200">
-                  My Account
+                  {t('nav.account')}
                 </Link>
               )}
               {profile?.role === 'admin' && (
                 <Link to="/admin" onClick={() => setMobileOpen(false)} className="text-lg font-medium text-wine-700 hover:text-blush-500 transition-colors py-2">
-                  Admin Dashboard
+                  {t('nav.adminDashboard')}
                 </Link>
               )}
             </div>

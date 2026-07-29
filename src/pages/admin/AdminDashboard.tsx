@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Package, ShoppingBag, Users, TrendingUp, ChevronRight, Upload, Tag, Image, Settings, UserCircle } from 'lucide-react'
+import { Package, ShoppingBag, Users, TrendingUp, ChevronRight, Upload, Tag, Image, Settings, UserCircle, Star, Truck } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { formatBDT } from '../../lib/constants'
 
@@ -102,6 +102,22 @@ export default function AdminDashboard() {
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-full bg-teal-100 flex items-center justify-center"><UserCircle size={22} className="text-teal-700" /></div>
             <div><h3 className="font-serif text-lg text-wine-800">Customers</h3><p className="text-sm text-wine-400">View customer list</p></div>
+          </div>
+          <ChevronRight size={20} className="text-wine-300" />
+        </Link>
+
+        <Link to="/admin/courier" className="card p-6 flex items-center justify-between hover:shadow-md transition-shadow">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center"><Truck size={22} className="text-blue-700" /></div>
+            <div><h3 className="font-serif text-lg text-wine-800">Courier</h3><p className="text-sm text-wine-400">Shipment tracking & integration</p></div>
+          </div>
+          <ChevronRight size={20} className="text-wine-300" />
+        </Link>
+
+        <Link to="/admin/reviews" className="card p-6 flex items-center justify-between hover:shadow-md transition-shadow">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center"><Star size={22} className="text-amber-700" /></div>
+            <div><h3 className="font-serif text-lg text-wine-800">Reviews</h3><p className="text-sm text-wine-400">Moderate customer reviews</p></div>
           </div>
           <ChevronRight size={20} className="text-wine-300" />
         </Link>

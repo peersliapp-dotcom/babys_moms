@@ -103,6 +103,10 @@ export type Order = {
   coupon_code: string | null
   shipping_address: Record<string, unknown>
   notes: string | null
+  courier_name: string | null
+  courier_tracking_id: string | null
+  courier_consignment_id: string | null
+  courier_status: string | null
   created_at: string
   updated_at: string
   order_items?: OrderItem[]
@@ -178,6 +182,9 @@ export type SiteSettings = {
   twitter_url: string | null
   hero_image_url: string | null
   hero_mobile_image_url: string | null
+  pathao_api_key: string | null
+  steadfast_api_key: string | null
+  courier_provider: string | null
   created_at: string
   updated_at: string
 }

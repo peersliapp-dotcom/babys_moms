@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Save, Upload, Phone, Mail, MapPin, Instagram, Facebook, Youtube, Twitter } from 'lucide-react'
+import { Save, Upload, Phone, Mail, MapPin, Instagram, Facebook, Youtube, Twitter, Truck } from 'lucide-react'
 import { supabase, type SiteSettings } from '../../lib/supabase'
 import { useToast } from '../../contexts/ToastContext'
 
@@ -36,6 +36,9 @@ export default function AdminSettings() {
       twitter_url: settings.twitter_url,
       hero_image_url: settings.hero_image_url,
       hero_mobile_image_url: settings.hero_mobile_image_url,
+      pathao_api_key: settings.pathao_api_key,
+      steadfast_api_key: settings.steadfast_api_key,
+      courier_provider: settings.courier_provider,
     }).eq('id', settings.id)
     if (error) showToast('Failed to save settings', 'error')
     else showToast('Settings saved!', 'success')
@@ -172,6 +175,47 @@ export default function AdminSettings() {
           <div>
             <label className="text-sm text-wine-600 mb-1.5 flex items-center gap-1.5"><Twitter size={14} /> Twitter URL</label>
             <input type="text" value={settings.twitter_url ?? ''} onChange={(e) => setSettings({ ...settings, twitter_url: e.target.value })} className="input-field" placeholder="https://twitter.com/..." />
+          </div>
+        </div>
+      </div>
+
+      {/* Courier Integration */}
+      <div className="card p-6 mb-6">
+        <h2 className="text-lg font-serif text-wine-800 mb-4 flex items-center gap-2"><Truck size={18} /> Courier Integration</h2>
+        <div className="space-y-4">
+          <div>
+            <label className="text-sm text-wine-600 mb-1.5 block">Default Courier Provider</label>
+            <select
+              value={settings.courier_provider ?? 'manual'}
+              onChange={(e) => setSettings({ ...settings, courier_provider: e.target.value })}
+              className="input-field"
+            >
+              <option value="manual">Manual (enter tracking IDs manually)</option>
+              <option value="pathao">Pathao (auto create shipments)</option>
+              <option value="steadfast">Steadfast (auto create shipments)</option>
+            </select>
+          </div>
+          <div>
+            <label className="text-sm text-wine-600 mb-1.5 block">Pathao API Key</label>
+            <input
+              type="password"
+              value={settings.pathao_api_key ?? ''}
+              onChange={(e) => setSettings({ ...settings, pathao_api_key: e.target.value })}
+              className="input-field"
+              placeholder="Enter Pathao API token..."
+            />
+            <p className="text-xs text-wine-400 mt-1">Get your API key from Pathao merchant portal.</p>
+          </div>
+          <div>
+            <label className="text-sm text-wine-600 mb-1.5 block">Steadfast API Key</label>
+            <input
+              type="password"
+              value={settings.steadfast_api_key ?? ''}
+              onChange={(e) => setSettings({ ...settings, steadfast_api_key: e.target.value })}
+              className="input-field"
+              placeholder="Enter Steadfast API key..."
+            />
+            <p className="text-xs text-wine-400 mt-1">Get your API key from Steadfast courier portal.</p>
           </div>
         </div>
       </div>
