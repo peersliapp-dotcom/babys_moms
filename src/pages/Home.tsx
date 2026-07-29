@@ -1,18 +1,19 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Crown, Truck, RefreshCw, Shield, ChevronRight } from 'lucide-react'
-import { supabase, type Product, type Category, type Banner } from '../lib/supabase'
+import { supabase, type Product, type Category, type Banner, type SiteSettings } from '../lib/supabase'
 import ProductCard from '../components/ProductCard'
 
 export default function Home() {
   const [featured, setFeatured] = useState<Product[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [banners, setBanners] = useState<Banner[]>([])
+  const [settings, setSettings] = useState<SiteSettings | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     async function load() {
-      const [featuredRes, categoriesRes, bannersRes] = await Promise.all([
+      const [featuredRes, categoriesRes, bannersRes, settingsRes] = await Promise.all([
         supabase
           .from('products')
           .select('*, category:categories(*), variants:product_variants(*)')
@@ -31,48 +32,56 @@ export default function Home() {
           .eq('is_active', true)
           .order('sort_order')
           .limit(3),
+        supabase
+          .from('site_settings')
+          .select('*')
+          .maybeSingle(),
       ])
 
       setFeatured((featuredRes.data as Product[]) ?? [])
       setCategories((categoriesRes.data as Category[]) ?? [])
       setBanners((bannersRes.data as Banner[]) ?? [])
+      setSettings(settingsRes.data as SiteSettings | null)
       setLoading(false)
     }
     load()
   }, [])
 
-  const heroImages = [
-    'https://i.ibb.co.com/v4388nf3/657371760-122097034964914680-2462231761944454697-n.jpg',
-    'https://images.pexels.com/photos/3933250/pexels-photo-3933250.jpeg',
-    'https://images.pexels.com/photos/8363905/pexels-photo-8363905.jpeg',
-  ]
+  const defaultHero = 'https://i.ibb.co.com/v4388nf3/657371760-122097034964914680-2462231761944454697-n.jpg'
+  const heroDesktop = settings?.hero_image_url ?? defaultHero
+  const heroMobile = settings?.hero_mobile_image_url ?? settings?.hero_image_url ?? defaultHero
 
   return (
     <div className="animate-fade-in">
       {/* Hero Section */}
-      <section className="relative h-[70vh] min-h-[500px] overflow-hidden">
+      <section className="relative h-[60vh] min-h-[420px] md:h-[70vh] md:min-h-[500px] overflow-hidden">
         <div className="absolute inset-0">
           <img
-            src={heroImages[0]}
+            src={heroDesktop}
             alt="Baby's and Mom's Clothing"
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover hidden md:block"
+          />
+          <img
+            src={heroMobile}
+            alt="Baby's and Mom's Clothing"
+            className="w-full h-full object-cover md:hidden"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-wine-900/70 via-wine-800/40 to-transparent" />
         </div>
         <div className="relative h-full flex items-center section-padding">
           <div className="max-w-xl">
-            <p className="text-blush-200 font-script text-2xl mb-2">Made with love</p>
-            <h1 className="text-4xl md:text-6xl font-serif text-cream-50 leading-tight mb-4">
+            <p className="text-blush-200 font-script text-xl md:text-2xl mb-2">Made with love</p>
+            <h1 className="text-3xl md:text-6xl font-serif text-cream-50 leading-tight mb-4">
               For you & your<br />little one
             </h1>
-            <p className="text-cream-100/90 text-lg mb-8 max-w-md">
+            <p className="text-cream-100/90 text-base md:text-lg mb-6 md:mb-8 max-w-md">
               Premium baby and maternity clothing, crafted with the softest fabrics and the utmost care.
             </p>
-            <div className="flex flex-wrap gap-4">
-              <Link to="/shop" className="bg-blush-400 text-white px-8 py-3.5 rounded-full font-medium hover:bg-blush-500 transition-all hover:shadow-lg active:scale-95">
+            <div className="flex flex-wrap gap-3 md:gap-4">
+              <Link to="/shop" className="bg-blush-400 text-white px-6 md:px-8 py-3 md:py-3.5 rounded-full font-medium hover:bg-blush-500 transition-all hover:shadow-lg active:scale-95 text-sm md:text-base">
                 Shop Collection
               </Link>
-              <Link to="/about" className="border-2 border-cream-50 text-cream-50 px-8 py-3.5 rounded-full font-medium hover:bg-cream-50 hover:text-wine-800 transition-all active:scale-95">
+              <Link to="/about" className="border-2 border-cream-50 text-cream-50 px-6 md:px-8 py-3 md:py-3.5 rounded-full font-medium hover:bg-cream-50 hover:text-wine-800 transition-all active:scale-95 text-sm md:text-base">
                 Our Story
               </Link>
             </div>

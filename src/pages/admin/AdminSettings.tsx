@@ -9,6 +9,8 @@ export default function AdminSettings() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [uploadingLogo, setUploadingLogo] = useState(false)
+  const [uploadingHero, setUploadingHero] = useState(false)
+  const [uploadingHeroMobile, setUploadingHeroMobile] = useState(false)
 
   useEffect(() => { load() }, [])
 
@@ -32,25 +34,27 @@ export default function AdminSettings() {
       facebook_url: settings.facebook_url,
       youtube_url: settings.youtube_url,
       twitter_url: settings.twitter_url,
+      hero_image_url: settings.hero_image_url,
+      hero_mobile_image_url: settings.hero_mobile_image_url,
     }).eq('id', settings.id)
     if (error) showToast('Failed to save settings', 'error')
     else showToast('Settings saved!', 'success')
     setSaving(false)
   }
 
-  const handleLogoUpload = async (file: File) => {
-    setUploadingLogo(true)
+  const handleImageUpload = async (file: File, field: 'logo_url' | 'hero_image_url' | 'hero_mobile_image_url', setUploading: (v: boolean) => void) => {
+    setUploading(true)
     const ext = file.name.split('.').pop() ?? 'png'
-    const fileName = `logo-${Date.now()}.${ext}`
+    const fileName = `${field.replace('_url', '')}-${Date.now()}.${ext}`
     const { error } = await supabase.storage.from('product-images').upload(fileName, file)
     if (error) {
-      showToast('Failed to upload logo', 'error')
+      showToast('Failed to upload image', 'error')
     } else {
       const { data: urlData } = supabase.storage.from('product-images').getPublicUrl(fileName)
-      setSettings({ ...settings!, logo_url: urlData.publicUrl })
-      showToast('Logo uploaded!', 'success')
+      setSettings({ ...settings!, [field]: urlData.publicUrl })
+      showToast('Image uploaded!', 'success')
     }
-    setUploadingLogo(false)
+    setUploading(false)
   }
 
   if (loading) {
@@ -83,9 +87,49 @@ export default function AdminSettings() {
           <div>
             <label className="btn-secondary flex items-center gap-2 cursor-pointer">
               <Upload size={16} /> {uploadingLogo ? 'Uploading...' : 'Upload Logo'}
-              <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && handleLogoUpload(e.target.files[0])} />
+              <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && handleImageUpload(e.target.files[0], 'logo_url', setUploadingLogo)} />
             </label>
             <p className="text-xs text-wine-400 mt-2">PNG or JPG, recommended 200x200px</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Hero Images */}
+      <div className="card p-6 mb-6">
+        <h2 className="text-lg font-serif text-wine-800 mb-4">Homepage Hero Images</h2>
+        <div className="space-y-6">
+          <div>
+            <label className="text-sm text-wine-600 mb-1.5 block">Desktop Hero Image (recommended 1920x800px)</label>
+            <div className="flex items-center gap-4">
+              <div className="w-40 h-24 rounded-xl bg-cream-100 overflow-hidden shrink-0">
+                {settings.hero_image_url ? (
+                  <img src={settings.hero_image_url} alt="Desktop Hero" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="flex items-center justify-center h-full"><span className="text-wine-300 text-xs">No image</span></div>
+                )}
+              </div>
+              <label className="btn-secondary flex items-center gap-2 cursor-pointer">
+                <Upload size={16} /> {uploadingHero ? 'Uploading...' : 'Upload Desktop'}
+                <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && handleImageUpload(e.target.files[0], 'hero_image_url', setUploadingHero)} />
+              </label>
+            </div>
+          </div>
+          <div>
+            <label className="text-sm text-wine-600 mb-1.5 block">Mobile Hero Image (recommended 800x1000px)</label>
+            <div className="flex items-center gap-4">
+              <div className="w-24 h-32 rounded-xl bg-cream-100 overflow-hidden shrink-0">
+                {settings.hero_mobile_image_url ? (
+                  <img src={settings.hero_mobile_image_url} alt="Mobile Hero" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="flex items-center justify-center h-full"><span className="text-wine-300 text-xs">No image</span></div>
+                )}
+              </div>
+              <label className="btn-secondary flex items-center gap-2 cursor-pointer">
+                <Upload size={16} /> {uploadingHeroMobile ? 'Uploading...' : 'Upload Mobile'}
+                <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && handleImageUpload(e.target.files[0], 'hero_mobile_image_url', setUploadingHeroMobile)} />
+              </label>
+            </div>
+            <p className="text-xs text-wine-400 mt-2">If no mobile image is set, the desktop image will be used on mobile.</p>
           </div>
         </div>
       </div>

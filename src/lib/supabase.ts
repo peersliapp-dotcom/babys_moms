@@ -176,6 +176,8 @@ export type SiteSettings = {
   facebook_url: string | null
   youtube_url: string | null
   twitter_url: string | null
+  hero_image_url: string | null
+  hero_mobile_image_url: string | null
   created_at: string
   updated_at: string
 }

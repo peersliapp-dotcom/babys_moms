@@ -1,11 +1,23 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Mail, Phone, MapPin, Send } from 'lucide-react'
 import { useToast } from '../contexts/ToastContext'
+import { supabase, type SiteSettings } from '../lib/supabase'
 
 export default function Contact() {
   const { showToast } = useToast()
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' })
   const [sending, setSending] = useState(false)
+  const [settings, setSettings] = useState<SiteSettings | null>(null)
+
+  useEffect(() => {
+    supabase.from('site_settings').select('*').maybeSingle().then(({ data }) => {
+      setSettings(data as SiteSettings | null)
+    })
+  }, [])
+
+  const phone = settings?.phone ?? '+880 1700 000000'
+  const email = settings?.email ?? 'hello@babysandmoms.com'
+  const address = settings?.address ?? 'Dhaka, Bangladesh'
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -26,9 +38,9 @@ export default function Contact() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10">
         {[
-          { icon: Phone, title: 'Call Us', value: '+880 1700 000000', sub: 'Sun–Fri, 10AM–8PM' },
-          { icon: Mail, title: 'Email Us', value: 'hello@babysandmoms.com', sub: 'We reply within 24 hours' },
-          { icon: MapPin, title: 'Visit Us', value: 'Dhaka, Bangladesh', sub: 'Gulshan, Dhaka 1212' },
+          { icon: Phone, title: 'Call Us', value: phone, sub: 'Sun–Fri, 10AM–8PM' },
+          { icon: Mail, title: 'Email Us', value: email, sub: 'We reply within 24 hours' },
+          { icon: MapPin, title: 'Visit Us', value: address, sub: 'Bangladesh' },
         ].map((item) => (
           <div key={item.title} className="card p-6 text-center">
             <div className="w-12 h-12 rounded-full bg-blush-100 flex items-center justify-center mx-auto mb-3">

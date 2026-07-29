@@ -1,7 +1,21 @@
-import { Crown, Heart, Shield, Leaf } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Crown, Heart, Shield, Leaf, Phone, Mail, MapPin } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { supabase, type SiteSettings } from '../lib/supabase'
 
 export default function About() {
+  const [settings, setSettings] = useState<SiteSettings | null>(null)
+
+  useEffect(() => {
+    supabase.from('site_settings').select('*').maybeSingle().then(({ data }) => {
+      setSettings(data as SiteSettings | null)
+    })
+  }, [])
+
+  const phone = settings?.phone ?? '+880 1700 000000'
+  const email = settings?.email ?? 'hello@babysandmoms.com'
+  const address = settings?.address ?? 'Dhaka, Bangladesh'
+
   return (
     <div className="animate-fade-in">
       {/* Hero */}
@@ -63,6 +77,24 @@ export default function About() {
             Your satisfaction is our priority.
           </p>
           <Link to="/shop" className="btn-primary">Shop Our Collection</Link>
+        </div>
+
+        {/* Contact Info from Site Settings */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16">
+          {[
+            { icon: Phone, title: 'Call Us', value: phone, sub: 'Sun–Fri, 10AM–8PM' },
+            { icon: Mail, title: 'Email Us', value: email, sub: 'We reply within 24 hours' },
+            { icon: MapPin, title: 'Visit Us', value: address, sub: 'Bangladesh' },
+          ].map((item) => (
+            <div key={item.title} className="card p-6 text-center">
+              <div className="w-12 h-12 rounded-full bg-blush-100 flex items-center justify-center mx-auto mb-3">
+                <item.icon size={20} className="text-wine-700" />
+              </div>
+              <h3 className="font-medium text-wine-800 mb-1">{item.title}</h3>
+              <p className="text-sm text-wine-600">{item.value}</p>
+              <p className="text-xs text-wine-400 mt-0.5">{item.sub}</p>
+            </div>
+          ))}
         </div>
       </section>
     </div>

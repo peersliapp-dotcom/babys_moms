@@ -112,8 +112,9 @@ export default function Checkout() {
       }
 
       navigate(`/order-confirmation/${order.order_number}`)
-    } catch {
-      showToast('Failed to place order. Please try again.', 'error')
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Failed to place order. Please try again.'
+      showToast(msg, 'error')
     }
     setProcessing(false)
   }
