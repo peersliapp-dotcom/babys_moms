@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
-import { SlidersHorizontal, X } from 'lucide-react'
+import { SlidersHorizontal, X, ChevronDown } from 'lucide-react'
 import { supabase, type Product, type Category } from '../lib/supabase'
 import ProductCard from '../components/ProductCard'
 
@@ -17,10 +17,17 @@ export default function Shop() {
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 5000])
   const [selectedSizes, setSelectedSizes] = useState<string[]>([])
   const [selectedColors, setSelectedColors] = useState<string[]>([])
+  const [expanded, setExpanded] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     setSelectedCategory(categorySlug ?? null)
-  }, [categorySlug])
+    if (categorySlug) {
+      const parent = categories.find((c) => c.slug === categorySlug)
+      if (parent) {
+        setExpanded((prev) => new Set(prev).add(parent.id))
+      }
+    }
+  }, [categorySlug, categories])
 
   useEffect(() => {
     async function load() {
@@ -124,7 +131,7 @@ export default function Shop() {
     <div className="space-y-6">
       <div>
         <h4 className="font-medium text-wine-800 mb-3">Category</h4>
-        <div className="space-y-2">
+        <div className="space-y-0.5">
           <button
             onClick={() => setSelectedCategory(null)}
             className={`text-sm block w-full text-left px-3 py-1.5 rounded-lg transition-colors ${
@@ -133,17 +140,67 @@ export default function Shop() {
           >
             All Products
           </button>
-          {categories.filter((c) => !c.parent_id).map((cat) => (
-            <button
-              key={cat.id}
-              onClick={() => setSelectedCategory(cat.slug)}
-              className={`text-sm block w-full text-left px-3 py-1.5 rounded-lg transition-colors ${
-                selectedCategory === cat.slug ? 'bg-blush-100 text-wine-700 font-medium' : 'text-wine-500 hover:bg-cream-100'
-              }`}
-            >
-              {cat.name}
-            </button>
-          ))}
+          {categories.filter((c) => !c.parent_id).map((parent) => {
+            const children = categories.filter((c) => c.parent_id === parent.id)
+            const isOpen = expanded.has(parent.id)
+            const isParentSelected = selectedCategory === parent.slug
+            const hasActiveChild = children.some((c) => c.slug === selectedCategory)
+
+            return (
+              <div key={parent.id}>
+                <button
+                  onClick={() => {
+                    setSelectedCategory(parent.slug)
+                    setExpanded((prev) => {
+                      const next = new Set(prev)
+                      if (next.has(parent.id)) next.delete(parent.id)
+                      else next.add(parent.id)
+                      return next
+                    })
+                  }}
+                  className={`text-sm w-full text-left px-3 py-1.5 rounded-lg transition-colors flex items-center gap-2 ${
+                    isParentSelected || hasActiveChild ? 'text-wine-700 font-medium' : 'text-wine-600 hover:bg-cream-100'
+                  }`}
+                >
+                  <span className="flex-1">{parent.name}</span>
+                  {children.length > 0 && (
+                    <ChevronDown
+                      size={14}
+                      className={`text-wine-300 transition-transform duration-300 shrink-0 ${
+                        isOpen ? 'rotate-180' : ''
+                      }`}
+                    />
+                  )}
+                </button>
+                {children.length > 0 && (
+                  <div
+                    className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                      isOpen ? 'max-h-60 opacity-100 py-0.5' : 'max-h-0 opacity-0 py-0'
+                    }`}
+                  >
+                    <div className="ml-4 space-y-0.5 border-l border-cream-200/70">
+                      {children.map((child) => {
+                        const isChildSelected = selectedCategory === child.slug
+                        return (
+                          <button
+                            key={child.id}
+                            onClick={() => setSelectedCategory(child.slug)}
+                            className={`text-xs w-full text-left pl-3 pr-3 py-1.5 rounded-lg transition-colors ${
+                              isChildSelected
+                                ? 'bg-blush-50 text-wine-700 font-medium'
+                                : 'text-wine-400 hover:text-wine-500 hover:bg-cream-50'
+                            }`}
+                          >
+                            {child.name}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )
+          })}
         </div>
       </div>
 

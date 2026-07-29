@@ -21,6 +21,7 @@ import AdminBanners from './pages/admin/AdminBanners'
 import AdminSettings from './pages/admin/AdminSettings'
 import AdminCustomers from './pages/admin/AdminCustomers'
 import AdminReviews from './pages/admin/AdminReviews'
+import AdminCategories from './pages/admin/AdminCategories'
 import AdminCourier from './pages/admin/AdminCourier'
 import About from './pages/About'
 import SizeGuide from './pages/SizeGuide'
@@ -83,6 +84,10 @@ export default function App() {
                 <AdminProducts />
               </AdminRoute>
             }
+          />
+          <Route
+            path="/admin/categories"
+            element={<AdminRoute><AdminCategories /></AdminRoute>}
           />
           <Route
             path="/admin/orders"
