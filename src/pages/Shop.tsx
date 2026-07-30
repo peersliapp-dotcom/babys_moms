@@ -3,6 +3,7 @@ import { useParams, useSearchParams } from 'react-router-dom'
 import { SlidersHorizontal, X, ChevronDown } from 'lucide-react'
 import { supabase, type Product, type Category } from '../lib/supabase'
 import ProductCard from '../components/ProductCard'
+import Seo from '../components/Seo'
 
 export default function Shop() {
   const { categorySlug } = useParams()
@@ -269,8 +270,27 @@ export default function Shop() {
     </div>
   )
 
+  const activeCategory = selectedCategory
+    ? categories.find((c) => c.slug === selectedCategory)?.name
+    : undefined
+  const shopTitle = activeCategory
+    ? `${activeCategory} Clothing`
+    : searchQuery
+    ? `Search: ${searchQuery}`
+    : 'Shop All'
+
   return (
     <div className="section-padding py-8 animate-fade-in">
+      <Seo
+        title={shopTitle}
+        description={
+          activeCategory
+            ? `Shop ${activeCategory.toLowerCase()} clothing at Baby's and Mom's Clothing. Premium, soft and safe fabrics delivered across Bangladesh.`
+            : "Browse the full collection of premium baby and maternity clothing at Baby's and Mom's Clothing. Soft, safe fabrics delivered across Bangladesh."
+        }
+        path={selectedCategory ? `/shop/${selectedCategory}` : '/shop'}
+        noindex={!!searchQuery}
+      />
       <div className="mb-6">
         <h1 className="text-3xl md:text-4xl font-serif text-wine-800 mb-2">
           {selectedCategory

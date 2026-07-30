@@ -7,6 +7,7 @@ import { useCart } from '../contexts/CartContext'
 import { useToast } from '../contexts/ToastContext'
 import { useAuth } from '../contexts/AuthContext'
 import ProductCard from '../components/ProductCard'
+import Seo from '../components/Seo'
 
 export default function ProductDetail() {
   const { slug } = useParams()
@@ -184,8 +185,44 @@ export default function ProductDetail() {
 
   const avgRating = reviews.length ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length : 0
 
+  const productImage = product.images?.[0] ?? undefined
+  const productJsonLd: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: product.name,
+    description: product.description ?? shareText,
+    image: product.images ?? undefined,
+    ...(product.category?.name ? { category: product.category.name } : {}),
+    offers: {
+      '@type': 'Offer',
+      priceCurrency: 'BDT',
+      price: variant?.price ?? product.variants?.[0]?.price ?? 0,
+      availability: isOutOfStock
+        ? 'https://schema.org/OutOfStock'
+        : 'https://schema.org/InStock',
+      url: shareUrl,
+    },
+    ...(reviews.length
+      ? {
+          aggregateRating: {
+            '@type': 'AggregateRating',
+            ratingValue: avgRating.toFixed(1),
+            reviewCount: reviews.length,
+          },
+        }
+      : {}),
+  }
+
   return (
     <div className="section-padding py-8 animate-fade-in">
+      <Seo
+        title={product.name}
+        description={product.description ?? shareText}
+        image={productImage}
+        path={`/product/${product.slug}`}
+        type="product"
+        jsonLd={productJsonLd}
+      />
       {/* Breadcrumb */}
       <nav className="flex items-center gap-1 text-sm text-wine-400 mb-6">
         <Link to="/" className="hover:text-blush-500">Home</Link>
