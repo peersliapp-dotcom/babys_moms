@@ -23,6 +23,8 @@ import AdminCustomers from './pages/admin/AdminCustomers'
 import AdminReviews from './pages/admin/AdminReviews'
 import AdminCategories from './pages/admin/AdminCategories'
 import AdminCourier from './pages/admin/AdminCourier'
+import AdminChat from './pages/admin/AdminChat'
+import ChatWidget from './components/ChatWidget'
 import About from './pages/About'
 import SizeGuide from './pages/SizeGuide'
 import ShippingPolicy from './pages/ShippingPolicy'
@@ -129,10 +131,15 @@ export default function App() {
             path="/admin/courier"
             element={<AdminRoute><AdminCourier /></AdminRoute>}
           />
+          <Route
+            path="/admin/messages"
+            element={<AdminRoute><AdminChat /></AdminRoute>}
+          />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
       <Footer />
+      <ChatWidget />
     </>
   )
 }

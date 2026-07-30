@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Heart, ShoppingBag, Zap, Share2 } from 'lucide-react'
+import { Heart, Share2 } from 'lucide-react'
 import { type Product } from '../lib/supabase'
 import { formatBDT } from '../lib/constants'
 import { useCart } from '../contexts/CartContext'
@@ -65,12 +65,21 @@ export default function ProductCard({ product }: { product: Product }) {
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           loading="lazy"
         />
+        {/* Wishlist — top right corner */}
         <button
           onClick={(e) => { e.preventDefault(); showToast('Added to wishlist!', 'info') }}
           className="absolute top-3 right-3 w-9 h-9 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center hover:bg-blush-400 hover:text-white transition-all opacity-0 group-hover:opacity-100"
           aria-label="Add to wishlist"
         >
           <Heart size={16} />
+        </button>
+        {/* Share — bottom left corner of image */}
+        <button
+          onClick={handleShare}
+          className="absolute bottom-3 left-3 w-9 h-9 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center hover:bg-wine-700 hover:text-cream-50 transition-all opacity-0 group-hover:opacity-100"
+          aria-label="Share product"
+        >
+          <Share2 size={15} />
         </button>
         {isOutOfStock && (
           <div className="absolute inset-0 bg-cream-50/40 flex items-center justify-center">
@@ -104,29 +113,22 @@ export default function ProductCard({ product }: { product: Product }) {
           )}
         </div>
 
-        {/* Action buttons */}
+        {/* Action buttons — text only, no icons */}
         {!isOutOfStock && (
           <div className="flex gap-2 mt-3">
             <button
               onClick={handleQuickAdd}
               disabled={adding}
-              className="flex-1 flex items-center justify-center gap-1.5 bg-cream-100 text-wine-700 py-2 rounded-lg text-xs font-medium hover:bg-cream-200 transition-all disabled:opacity-50"
+              className="flex-1 bg-cream-100 text-wine-700 py-2.5 rounded-lg text-xs font-medium hover:bg-cream-200 transition-all disabled:opacity-50"
             >
-              <ShoppingBag size={14} /> {adding ? 'Adding...' : 'Add'}
+              {adding ? 'Adding...' : 'Add to Cart'}
             </button>
             <button
               onClick={handleBuyNow}
               disabled={buying}
-              className="flex-1 flex items-center justify-center gap-1.5 bg-wine-700 text-cream-50 py-2 rounded-lg text-xs font-medium hover:bg-wine-800 transition-all disabled:opacity-50"
+              className="flex-1 bg-wine-700 text-cream-50 py-2.5 rounded-lg text-xs font-medium hover:bg-wine-800 transition-all disabled:opacity-50"
             >
-              <Zap size={14} /> {buying ? '...' : 'Buy Now'}
-            </button>
-            <button
-              onClick={handleShare}
-              className="w-9 h-9 flex items-center justify-center rounded-lg border border-cream-300 text-wine-500 hover:border-blush-300 hover:text-blush-500 transition-all shrink-0"
-              aria-label="Share product"
-            >
-              <Share2 size={14} />
+              {buying ? '...' : 'Buy Now'}
             </button>
           </div>
         )}

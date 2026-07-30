@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Package, ShoppingBag, Users, TrendingUp, ChevronRight, Upload, Tag, Image, Settings, UserCircle, Star, Truck, Grid3X3 } from 'lucide-react'
+import { Package, ShoppingBag, Users, TrendingUp, ChevronRight, Upload, Tag, Image, Settings, UserCircle, Star, Truck, Grid3X3, MessageCircle } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { formatBDT } from '../../lib/constants'
 
@@ -126,6 +126,14 @@ export default function AdminDashboard() {
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center"><Star size={22} className="text-amber-700" /></div>
             <div><h3 className="font-serif text-lg text-wine-800">Reviews</h3><p className="text-sm text-wine-400">Moderate customer reviews</p></div>
+          </div>
+          <ChevronRight size={20} className="text-wine-300" />
+        </Link>
+
+        <Link to="/admin/messages" className="card p-6 flex items-center justify-between hover:shadow-md transition-shadow">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-wine-100 flex items-center justify-center"><MessageCircle size={22} className="text-wine-700" /></div>
+            <div><h3 className="font-serif text-lg text-wine-800">Messages</h3><p className="text-sm text-wine-400">Customer chat & support</p></div>
           </div>
           <ChevronRight size={20} className="text-wine-300" />
         </Link>
