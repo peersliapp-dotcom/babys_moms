@@ -107,6 +107,13 @@ export type Order = {
   courier_tracking_id: string | null
   courier_consignment_id: string | null
   courier_status: string | null
+  payment_gateway: string | null
+  payment_gateway_tran_id: string | null
+  payment_gateway_url: string | null
+  payment_verified: boolean | null
+  cod_verified: boolean | null
+  cod_verified_at: string | null
+  cod_verified_by: string | null
   created_at: string
   updated_at: string
   order_items?: OrderItem[]
@@ -185,6 +192,15 @@ export type SiteSettings = {
   pathao_api_key: string | null
   steadfast_api_key: string | null
   courier_provider: string | null
+  sslcommerz_store_id: string | null
+  sslcommerz_store_password: string | null
+  bkash_app_key: string | null
+  bkash_app_secret: string | null
+  bkash_username: string | null
+  bkash_password: string | null
+  nagad_merchant_id: string | null
+  nagad_api_key: string | null
+  payment_mode: string | null
   created_at: string
   updated_at: string
 }

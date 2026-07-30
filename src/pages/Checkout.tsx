@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { ChevronRight, Check } from 'lucide-react'
+import { ChevronRight, Check, Shield, Lock } from 'lucide-react'
 import { useCart } from '../contexts/CartContext'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
@@ -65,7 +65,7 @@ export default function Checkout() {
         guest_phone: shippingInfo.phone,
         status: 'pending' as const,
         payment_method: paymentMethod,
-        payment_status: paymentMethod === 'cod' ? 'pending' : 'pending',
+        payment_status: 'pending',
         subtotal,
         discount_amount: discount,
         shipping_amount: shippingCost,
@@ -118,6 +118,41 @@ export default function Checkout() {
 
       if (session) {
         await clearCart()
+      }
+
+      // For online payments, create payment session and redirect
+      if (paymentMethod !== 'cod') {
+        const { data: payData, error: payError } = await supabase.functions.invoke('payment-gateway', {
+          body: JSON.stringify({
+            action: 'create_payment',
+            order_id: order.id,
+            payment_method: paymentMethod,
+            amount: total,
+            order_number: order.order_number,
+            customer_info: {
+              full_name: shippingInfo.full_name,
+              phone: shippingInfo.phone,
+              email: shippingInfo.email || 'noreply@example.com',
+              address: shippingInfo.address_line1,
+              city: shippingInfo.city,
+            },
+          }),
+        })
+
+        if (payError || payData?.error) {
+          showToast(payData?.error ?? 'Payment gateway error. Order placed with pending payment.', 'error')
+          navigate(`/order-confirmation/${order.order_number}`)
+          return
+        }
+
+        // Redirect to payment gateway
+        if (payData?.payment_url) {
+          window.location.href = payData.payment_url
+          return
+        }
+
+        // If no URL (sandbox not configured), go to confirmation with pending payment
+        showToast('Payment gateway not configured. Order placed with pending payment.', 'info')
       }
 
       navigate(`/order-confirmation/${order.order_number}`)
@@ -322,9 +357,20 @@ export default function Checkout() {
                 ))}
               </div>
 
+              {paymentMethod === 'cod' && (
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mt-4 text-sm text-amber-700">
+                  <p className="font-medium mb-1">Cash on Delivery</p>
+                  <p>Pay in cash when your order is delivered. A verification call may be made to confirm your order before dispatch.</p>
+                </div>
+              )}
+
               {paymentMethod !== 'cod' && (
-                <div className="bg-cream-100 rounded-xl p-4 mt-4 text-sm text-wine-500">
-                  You will be redirected to the payment gateway after placing your order. Your payment is secured and PCI-DSS compliant.
+                <div className="bg-cream-100 rounded-xl p-4 mt-4 text-sm text-wine-500 flex items-start gap-2">
+                  <Lock size={16} className="text-wine-400 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-medium text-wine-700">Secure Payment</p>
+                    <p className="mt-0.5">You will be redirected to {PAYMENT_METHODS.find(m => m.id === paymentMethod)?.name}'s secure payment page. Your payment is protected with bank-level encryption.</p>
+                  </div>
                 </div>
               )}
 
@@ -353,8 +399,10 @@ export default function Checkout() {
 
               <div className="mb-6">
                 <h4 className="text-sm font-medium text-wine-700 mb-2">Payment Method</h4>
-                <div className="text-sm text-wine-500 bg-cream-100 rounded-xl p-4">
+                <div className="text-sm text-wine-500 bg-cream-100 rounded-xl p-4 flex items-center gap-2">
+                  <Shield size={16} className="text-wine-400" />
                   {PAYMENT_METHODS.find((m) => m.id === paymentMethod)?.name}
+                  {paymentMethod === 'cod' && <span className="text-xs text-amber-600">(Verification required before dispatch)</span>}
                 </div>
               </div>
 
@@ -388,10 +436,10 @@ export default function Checkout() {
                   {processing ? (
                     <>
                       <div className="w-5 h-5 border-2 border-cream-50 border-t-transparent rounded-full animate-spin" />
-                      Placing Order...
+                      {paymentMethod === 'cod' ? 'Placing Order...' : 'Redirecting to payment...'}
                     </>
                   ) : (
-                    `Place Order · ${formatBDT(total)}`
+                    paymentMethod === 'cod' ? `Place Order · ${formatBDT(total)}` : `Pay ${formatBDT(total)}`
                   )}
                 </button>
               </div>

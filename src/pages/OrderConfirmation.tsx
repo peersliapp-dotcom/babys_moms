@@ -1,13 +1,16 @@
 import { useEffect, useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
-import { CheckCircle, Package, Truck, Home as HomeIcon } from 'lucide-react'
+import { useParams, Link, useSearchParams } from 'react-router-dom'
+import { CheckCircle, Package, Truck, Home as HomeIcon, Clock, ShieldCheck, AlertCircle, Phone } from 'lucide-react'
 import { supabase, type Order } from '../lib/supabase'
 import { formatBDT } from '../lib/constants'
 
 export default function OrderConfirmation() {
   const { orderNumber } = useParams()
+  const [searchParams] = useSearchParams()
   const [order, setOrder] = useState<Order | null>(null)
   const [loading, setLoading] = useState(true)
+
+  const paymentResult = searchParams.get('payment')
 
   useEffect(() => {
     async function load() {
@@ -39,9 +42,13 @@ export default function OrderConfirmation() {
     )
   }
 
+  const isPaid = order.payment_status === 'paid' || paymentResult === 'success'
+  const isCOD = order.payment_method === 'cod'
+  const isPaymentFailed = paymentResult === 'failed' || order.payment_status === 'failed'
+
   const steps = [
     { icon: CheckCircle, label: 'Order Placed', done: true },
-    { icon: Package, label: 'Processing', done: false },
+    { icon: Package, label: 'Processing', done: isPaid || isCOD },
     { icon: Truck, label: 'Shipped', done: false },
     { icon: HomeIcon, label: 'Delivered', done: false },
   ]
@@ -49,13 +56,68 @@ export default function OrderConfirmation() {
   return (
     <div className="section-padding py-12 max-w-2xl mx-auto animate-fade-in">
       <div className="text-center mb-8">
-        <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
-          <CheckCircle size={40} className="text-green-600" />
+        <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 ${isPaymentFailed ? 'bg-red-100' : 'bg-green-100'}`}>
+          {isPaymentFailed ? <AlertCircle size={40} className="text-red-600" /> : <CheckCircle size={40} className="text-green-600" />}
         </div>
-        <h1 className="text-3xl font-serif text-wine-800 mb-2">Thank You!</h1>
-        <p className="text-wine-500">Your order has been placed successfully.</p>
+        <h1 className="text-3xl font-serif text-wine-800 mb-2">
+          {isPaymentFailed ? 'Payment Failed' : 'Thank You!'}
+        </h1>
+        <p className="text-wine-500">
+          {isPaymentFailed
+            ? 'Your payment could not be processed. Please try again.'
+            : 'Your order has been placed successfully.'}
+        </p>
         <p className="text-wine-700 font-medium mt-2">Order #{order.order_number}</p>
       </div>
+
+      {/* Payment status banner */}
+      {isPaymentFailed && (
+        <div className="card p-4 mb-6 bg-red-50 border border-red-200">
+          <div className="flex items-center gap-3">
+            <AlertCircle size={20} className="text-red-600 shrink-0" />
+            <div className="text-sm text-red-700">
+              <p className="font-medium">Payment Failed</p>
+              <p>Your order has been placed but payment is pending. Please complete payment to confirm your order.</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* COD verification status */}
+      {isCOD && !isPaymentFailed && (
+        <div className={`card p-4 mb-6 ${order.cod_verified ? 'bg-green-50 border border-green-200' : 'bg-amber-50 border border-amber-200'}`}>
+          <div className="flex items-center gap-3">
+            {order.cod_verified ? (
+              <ShieldCheck size={20} className="text-green-600 shrink-0" />
+            ) : (
+              <Clock size={20} className="text-amber-600 shrink-0" />
+            )}
+            <div className="text-sm">
+              <p className={`font-medium ${order.cod_verified ? 'text-green-700' : 'text-amber-700'}`}>
+                {order.cod_verified ? 'Order Verified' : 'Pending Verification'}
+              </p>
+              <p className={order.cod_verified ? 'text-green-600' : 'text-amber-600'}>
+                {order.cod_verified
+                  ? 'Your order has been verified and will be dispatched soon.'
+                  : 'Your COD order will be verified via phone call before dispatch. Please keep your phone available.'}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Online payment success */}
+      {isPaid && !isCOD && !isPaymentFailed && (
+        <div className="card p-4 mb-6 bg-green-50 border border-green-200">
+          <div className="flex items-center gap-3">
+            <ShieldCheck size={20} className="text-green-600 shrink-0" />
+            <div className="text-sm text-green-700">
+              <p className="font-medium">Payment Confirmed</p>
+              <p>Paid {formatBDT(order.total_amount)} via {order.payment_gateway ?? order.payment_method}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Tracking Steps */}
       <div className="flex justify-between mb-10 px-4">
@@ -138,14 +200,15 @@ export default function OrderConfirmation() {
         <h2 className="text-lg font-serif text-wine-800 mb-3">Payment</h2>
         <div className="flex justify-between text-sm">
           <span className="text-wine-600 capitalize">{order.payment_method}</span>
-          <span className={`font-medium ${order.payment_status === 'paid' ? 'text-green-600' : 'text-amber-600'}`}>
-            {order.payment_status === 'paid' ? 'Paid' : 'Pending'}
+          <span className={`font-medium ${isPaid ? 'text-green-600' : isPaymentFailed ? 'text-red-600' : 'text-amber-600'}`}>
+            {isPaid ? 'Paid' : isPaymentFailed ? 'Failed' : 'Pending'}
           </span>
         </div>
-        {order.payment_method !== 'cod' && order.payment_status === 'pending' && (
-          <p className="text-xs text-wine-400 mt-2">
-            You will receive a payment link via SMS/email shortly. Please complete the payment to confirm your order.
-          </p>
+        {isCOD && !order.cod_verified && (
+          <div className="flex items-center gap-2 mt-3 text-xs text-amber-600">
+            <Phone size={14} />
+            <span>Verification call will be made to {order.guest_phone ?? 'your phone'} before dispatch.</span>
+          </div>
         )}
       </div>
 

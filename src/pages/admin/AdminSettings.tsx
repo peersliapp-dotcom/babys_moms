@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Save, Upload, Phone, Mail, MapPin, Instagram, Facebook, Youtube, Twitter, Truck } from 'lucide-react'
+import { Save, Upload, Phone, Mail, MapPin, Instagram, Facebook, Youtube, Twitter, Truck, CreditCard } from 'lucide-react'
 import { supabase, type SiteSettings } from '../../lib/supabase'
 import { useToast } from '../../contexts/ToastContext'
 
@@ -39,6 +39,15 @@ export default function AdminSettings() {
       pathao_api_key: settings.pathao_api_key,
       steadfast_api_key: settings.steadfast_api_key,
       courier_provider: settings.courier_provider,
+      sslcommerz_store_id: settings.sslcommerz_store_id,
+      sslcommerz_store_password: settings.sslcommerz_store_password,
+      bkash_app_key: settings.bkash_app_key,
+      bkash_app_secret: settings.bkash_app_secret,
+      bkash_username: settings.bkash_username,
+      bkash_password: settings.bkash_password,
+      nagad_merchant_id: settings.nagad_merchant_id,
+      nagad_api_key: settings.nagad_api_key,
+      payment_mode: settings.payment_mode,
     }).eq('id', settings.id)
     if (error) showToast('Failed to save settings', 'error')
     else showToast('Settings saved!', 'success')
@@ -216,6 +225,78 @@ export default function AdminSettings() {
               placeholder="Enter Steadfast API key..."
             />
             <p className="text-xs text-wine-400 mt-1">Get your API key from Steadfast courier portal.</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Payment Gateway */}
+      <div className="card p-6 mb-6">
+        <h2 className="text-lg font-serif text-wine-800 mb-4 flex items-center gap-2"><CreditCard size={18} /> Payment Gateway</h2>
+        <div className="space-y-4">
+          <div>
+            <label className="text-sm text-wine-600 mb-1.5 block">Payment Mode</label>
+            <select
+              value={settings.payment_mode ?? 'sandbox'}
+              onChange={(e) => setSettings({ ...settings, payment_mode: e.target.value })}
+              className="input-field"
+            >
+              <option value="sandbox">Sandbox (Testing)</option>
+              <option value="live">Live (Real Payments)</option>
+            </select>
+            <p className="text-xs text-wine-400 mt-1">Use sandbox mode while testing. Switch to live when ready to accept real payments.</p>
+          </div>
+
+          {/* SSLCommerz (Card) */}
+          <div className="border-t border-cream-200 pt-4">
+            <h3 className="text-sm font-medium text-wine-700 mb-3">SSLCommerz (Card Payments)</h3>
+            <div className="space-y-3">
+              <div>
+                <label className="text-sm text-wine-600 mb-1.5 block">Store ID</label>
+                <input type="text" value={settings.sslcommerz_store_id ?? ''} onChange={(e) => setSettings({ ...settings, sslcommerz_store_id: e.target.value })} className="input-field" placeholder="Enter SSLCommerz store ID..." />
+              </div>
+              <div>
+                <label className="text-sm text-wine-600 mb-1.5 block">Store Password</label>
+                <input type="password" value={settings.sslcommerz_store_password ?? ''} onChange={(e) => setSettings({ ...settings, sslcommerz_store_password: e.target.value })} className="input-field" placeholder="Enter store password..." />
+              </div>
+            </div>
+          </div>
+
+          {/* bKash */}
+          <div className="border-t border-cream-200 pt-4">
+            <h3 className="text-sm font-medium text-wine-700 mb-3">bKash</h3>
+            <div className="space-y-3">
+              <div>
+                <label className="text-sm text-wine-600 mb-1.5 block">App Key</label>
+                <input type="password" value={settings.bkash_app_key ?? ''} onChange={(e) => setSettings({ ...settings, bkash_app_key: e.target.value })} className="input-field" placeholder="Enter bKash app key..." />
+              </div>
+              <div>
+                <label className="text-sm text-wine-600 mb-1.5 block">App Secret</label>
+                <input type="password" value={settings.bkash_app_secret ?? ''} onChange={(e) => setSettings({ ...settings, bkash_app_secret: e.target.value })} className="input-field" placeholder="Enter bKash app secret..." />
+              </div>
+              <div>
+                <label className="text-sm text-wine-600 mb-1.5 block">Username</label>
+                <input type="text" value={settings.bkash_username ?? ''} onChange={(e) => setSettings({ ...settings, bkash_username: e.target.value })} className="input-field" placeholder="Enter bKash username..." />
+              </div>
+              <div>
+                <label className="text-sm text-wine-600 mb-1.5 block">Password</label>
+                <input type="password" value={settings.bkash_password ?? ''} onChange={(e) => setSettings({ ...settings, bkash_password: e.target.value })} className="input-field" placeholder="Enter bKash password..." />
+              </div>
+            </div>
+          </div>
+
+          {/* Nagad */}
+          <div className="border-t border-cream-200 pt-4">
+            <h3 className="text-sm font-medium text-wine-700 mb-3">Nagad</h3>
+            <div className="space-y-3">
+              <div>
+                <label className="text-sm text-wine-600 mb-1.5 block">Merchant ID</label>
+                <input type="text" value={settings.nagad_merchant_id ?? ''} onChange={(e) => setSettings({ ...settings, nagad_merchant_id: e.target.value })} className="input-field" placeholder="Enter Nagad merchant ID..." />
+              </div>
+              <div>
+                <label className="text-sm text-wine-600 mb-1.5 block">API Key</label>
+                <input type="password" value={settings.nagad_api_key ?? ''} onChange={(e) => setSettings({ ...settings, nagad_api_key: e.target.value })} className="input-field" placeholder="Enter Nagad API key..." />
+              </div>
+            </div>
           </div>
         </div>
       </div>
