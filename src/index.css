@@ -48,6 +48,15 @@
     -webkit-text-fill-color: transparent;
     animation: brandShine 3s ease-in-out infinite;
   }
+  .brand-title-light {
+    @apply font-serif font-semibold whitespace-nowrap;
+    background: linear-gradient(135deg, #F5E8D3 0%, #ECD5B0 30%, #E8B8A8 50%, #ECD5B0 70%, #F5E8D3 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: brandShine 3s ease-in-out infinite;
+  }
   .logo-skeleton {
     background: linear-gradient(110deg, #FBE6E9 0%, #FDF2F4 25%, #F5E8D3 50%, #FDF2F4 75%, #FBE6E9 100%);
     background-size: 200% 100%;

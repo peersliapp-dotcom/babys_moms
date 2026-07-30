@@ -6,6 +6,7 @@ import { useLanguage } from '../contexts/LanguageContext'
 
 export default function Footer() {
   const [settings, setSettings] = useState<SiteSettings | null>(null)
+  const [logoError, setLogoError] = useState(false)
   const { t } = useLanguage()
 
   useEffect(() => {
@@ -24,7 +25,22 @@ export default function Footer() {
       <div className="section-padding py-16">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
           <div>
-            <img src={logoUrl} alt="Baby's and Mom's Clothing" className="h-14 w-auto mb-4 brightness-200" />
+            {logoError ? (
+              <span className="brand-title-light text-xl lg:text-2xl block mb-4">Baby&rsquo;s &amp; Mom&rsquo;s</span>
+            ) : (
+              <div className="flex items-center gap-3 mb-4">
+                <div className="relative h-14 w-auto min-w-[40px]">
+                  <div className="logo-skeleton absolute inset-0 min-w-[40px] rounded-full brightness-125" />
+                  <img
+                    src={logoUrl}
+                    alt=""
+                    className="h-14 w-auto brightness-200 relative z-10"
+                    onError={() => setLogoError(true)}
+                  />
+                </div>
+                <span className="brand-title-light text-lg lg:text-xl">Baby&rsquo;s &amp; Mom&rsquo;s</span>
+              </div>
+            )}
             <p className="text-sm text-cream-200/80 leading-relaxed">
               Made with love, for you & your little one. Premium baby and maternity clothing from Bangladesh.
             </p>
