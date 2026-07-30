@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Save, Upload, Phone, Mail, MapPin, Instagram, Facebook, Youtube, Twitter, Truck, CreditCard } from 'lucide-react'
+import { Save, Upload, Phone, Mail, MapPin, Instagram, Facebook, Youtube, Twitter, Truck, CreditCard, Send } from 'lucide-react'
 import { supabase, type SiteSettings } from '../../lib/supabase'
 import { useToast } from '../../contexts/ToastContext'
 
@@ -11,6 +11,7 @@ export default function AdminSettings() {
   const [uploadingLogo, setUploadingLogo] = useState(false)
   const [uploadingHero, setUploadingHero] = useState(false)
   const [uploadingHeroMobile, setUploadingHeroMobile] = useState(false)
+  const [connectingTelegram, setConnectingTelegram] = useState(false)
 
   useEffect(() => { load() }, [])
 
@@ -48,6 +49,9 @@ export default function AdminSettings() {
       nagad_merchant_id: settings.nagad_merchant_id,
       nagad_api_key: settings.nagad_api_key,
       payment_mode: settings.payment_mode,
+      telegram_bot_token: settings.telegram_bot_token,
+      telegram_chat_id: settings.telegram_chat_id,
+      telegram_bot_username: settings.telegram_bot_username,
     }).eq('id', settings.id)
     if (error) showToast('Failed to save settings', 'error')
     else showToast('Settings saved!', 'success')
@@ -297,6 +301,47 @@ export default function AdminSettings() {
                 <input type="password" value={settings.nagad_api_key ?? ''} onChange={(e) => setSettings({ ...settings, nagad_api_key: e.target.value })} className="input-field" placeholder="Enter Nagad API key..." />
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Telegram Integration */}
+      <div className="card p-6 mb-6">
+        <h2 className="text-lg font-serif text-wine-800 mb-4 flex items-center gap-2"><Send size={18} /> Telegram Integration</h2>
+        <p className="text-sm text-wine-400 mb-4">Connect a Telegram bot to receive instant new-order notifications and offer live customer support. Create a bot with <a href="https://t.me/BotFather" target="_blank" rel="noopener noreferrer" className="text-blush-500 underline">@BotFather</a> on Telegram to get your bot token.</p>
+        <div className="space-y-4">
+          <div>
+            <label className="text-sm text-wine-600 mb-1.5 block">Bot Username (without @)</label>
+            <input
+              type="text"
+              value={settings.telegram_bot_username ?? ''}
+              onChange={(e) => setSettings({ ...settings, telegram_bot_username: e.target.value })}
+              className="input-field"
+              placeholder="babysandmoms_bot"
+            />
+            <p className="text-xs text-wine-400 mt-1">This is the bot customers will chat with for support and order tracking.</p>
+          </div>
+          <div>
+            <label className="text-sm text-wine-600 mb-1.5 block">Bot Token</label>
+            <input
+              type="password"
+              value={settings.telegram_bot_token ?? ''}
+              onChange={(e) => setSettings({ ...settings, telegram_bot_token: e.target.value })}
+              className="input-field"
+              placeholder="123456789:ABC-DEF1234ghIkl-zyx57W2v1u123ew11..."
+            />
+            <p className="text-xs text-wine-400 mt-1">Get this from @BotFather when you create your bot.</p>
+          </div>
+          <div>
+            <label className="text-sm text-wine-600 mb-1.5 block">Admin Chat ID</label>
+            <input
+              type="text"
+              value={settings.telegram_chat_id ?? ''}
+              onChange={(e) => setSettings({ ...settings, telegram_chat_id: e.target.value })}
+              className="input-field"
+              placeholder="123456789"
+            />
+            <p className="text-xs text-wine-400 mt-1">Where new order notifications are sent. Message <a href="https://t.me/userinfobot" target="_blank" rel="noopener noreferrer" className="text-blush-500 underline">@userinfobot</a> on Telegram to find your chat ID.</p>
           </div>
         </div>
       </div>

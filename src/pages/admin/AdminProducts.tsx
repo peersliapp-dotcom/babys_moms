@@ -31,6 +31,7 @@ export default function AdminProducts() {
     name: '',
     slug: '',
     description: '',
+    description_bn: '',
     category_id: '',
     images: '',
     is_featured: false,
@@ -58,7 +59,7 @@ export default function AdminProducts() {
 
   const openAdd = () => {
     setEditing(null)
-    setForm({ name: '', slug: '', description: '', category_id: '', images: '', is_featured: false, is_active: true })
+    setForm({ name: '', slug: '', description: '', description_bn: '', category_id: '', images: '', is_featured: false, is_active: true })
     setVariants([])
     setVariantsExpanded(false)
     setShowForm(true)
@@ -70,6 +71,7 @@ export default function AdminProducts() {
       name: product.name,
       slug: product.slug,
       description: product.description ?? '',
+      description_bn: product.description_bn ?? '',
       category_id: product.category_id ?? '',
       images: product.images?.join('\n') ?? '',
       is_featured: product.is_featured,
@@ -119,6 +121,7 @@ export default function AdminProducts() {
       name: form.name,
       slug: form.slug,
       description: form.description || null,
+      description_bn: form.description_bn || null,
       category_id: form.category_id || null,
       images: form.images.split('\n').map((s) => s.trim()).filter(Boolean),
       is_featured: form.is_featured,
@@ -318,8 +321,12 @@ export default function AdminProducts() {
                 </select>
               </div>
               <div>
-                <label className="text-sm text-wine-600 mb-1.5 block">Description</label>
+                <label className="text-sm text-wine-600 mb-1.5 block">Description (English)</label>
                 <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="input-field min-h-24 resize-none" />
+              </div>
+              <div>
+                <label className="text-sm text-wine-600 mb-1.5 block">Description (Bangla) <span className="text-wine-400 font-normal">— shown when site language is Bangla</span></label>
+                <textarea value={form.description_bn} onChange={(e) => setForm({ ...form, description_bn: e.target.value })} className="input-field min-h-24 resize-none" placeholder="বাংলায় বিবরণ লিখুন..." />
               </div>
               <div>
                 <label className="text-sm text-wine-600 mb-1.5 block">Image URLs (one per line)</label>

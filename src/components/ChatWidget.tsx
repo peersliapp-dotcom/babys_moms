@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { MessageCircle, X, Send, Bot, User } from 'lucide-react'
+import { MessageCircle, X, Send, Bot, User, Send as TelegramIcon } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 
@@ -8,6 +8,11 @@ interface ChatMessage {
   sender: string
   content: string
   created_at: string
+}
+
+interface TelegramConfig {
+  telegram_bot_username: string | null
+  telegram_bot_token: string | null
 }
 
 const GUEST_ID_KEY = 'chat_guest_id'
@@ -29,7 +34,17 @@ export default function ChatWidget() {
   const [loading, setLoading] = useState(false)
   const [conversationId, setConversationId] = useState<string | null>(null)
   const [unread, setUnread] = useState(0)
+  const [telegramBot, setTelegramBot] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    supabase.from('site_settings').select('telegram_bot_username, telegram_bot_token').limit(1).maybeSingle()
+      .then(({ data }) => {
+        if (data?.telegram_bot_username && data?.telegram_bot_token) {
+          setTelegramBot(data.telegram_bot_username)
+        }
+      })
+  }, [])
 
   useEffect(() => {
     if (open) {
@@ -222,6 +237,17 @@ export default function ChatWidget() {
 
           {/* Input */}
           <div className="p-3 border-t border-cream-200 bg-white shrink-0">
+            {telegramBot && (
+              <a
+                href={`https://t.me/${telegramBot}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 w-full mb-2 py-2 rounded-full bg-[#229ED9] text-white text-sm font-medium hover:bg-[#1d8ec2] transition-colors"
+              >
+                <TelegramIcon size={16} />
+                Chat on Telegram for order tracking
+              </a>
+            )}
             <div className="flex items-center gap-2">
               <input
                 type="text"
