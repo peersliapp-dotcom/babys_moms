@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Heart, ShoppingBag } from 'lucide-react'
+import { Heart, ShoppingBag, Zap, Share2 } from 'lucide-react'
 import { type Product } from '../lib/supabase'
 import { formatBDT } from '../lib/constants'
 import { useCart } from '../contexts/CartContext'
@@ -10,6 +10,7 @@ export default function ProductCard({ product }: { product: Product }) {
   const { addToCart } = useCart()
   const { showToast } = useToast()
   const [adding, setAdding] = useState(false)
+  const [buying, setBuying] = useState(false)
 
   const minPrice = product.variants?.length
     ? Math.min(...product.variants.map((v) => v.price))
@@ -32,6 +33,27 @@ export default function ProductCard({ product }: { product: Product }) {
     setAdding(false)
   }
 
+  const handleBuyNow = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    if (!product.variants?.length || isOutOfStock) return
+    setBuying(true)
+    const firstVariant = product.variants[0]
+    await addToCart(firstVariant.id, 1)
+    window.location.href = '/cart'
+  }
+
+  const handleShare = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    const url = `${window.location.origin}/product/${product.slug}`
+    if (navigator.share) {
+      navigator.share({ title: product.name, url }).catch(() => {})
+    } else {
+      navigator.clipboard.writeText(url)
+      showToast('Link copied!', 'success')
+    }
+  }
+
   const image = product.images?.[0] ?? 'https://images.pexels.com/photos/307009/pexels-photo-307009.jpeg'
 
   return (
@@ -43,20 +65,6 @@ export default function ProductCard({ product }: { product: Product }) {
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           loading="lazy"
         />
-        <div className="absolute top-3 left-3 flex flex-col gap-1.5">
-          {product.is_featured && (
-            <span className="badge bg-gold-400 text-white">Featured</span>
-          )}
-          {hasDiscount && (
-            <span className="badge bg-blush-400 text-white">Sale</span>
-          )}
-          {isLowStock && (
-            <span className="badge bg-amber-500 text-white">Low Stock</span>
-          )}
-          {isOutOfStock && (
-            <span className="badge bg-gray-500 text-white">Out of Stock</span>
-          )}
-        </div>
         <button
           onClick={(e) => { e.preventDefault(); showToast('Added to wishlist!', 'info') }}
           className="absolute top-3 right-3 w-9 h-9 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center hover:bg-blush-400 hover:text-white transition-all opacity-0 group-hover:opacity-100"
@@ -64,26 +72,64 @@ export default function ProductCard({ product }: { product: Product }) {
         >
           <Heart size={16} />
         </button>
-        {!isOutOfStock && product.variants?.length === 1 && (
-          <button
-            onClick={handleQuickAdd}
-            disabled={adding}
-            className="absolute bottom-3 left-3 right-3 bg-wine-700 text-cream-50 py-2.5 rounded-xl text-sm font-medium hover:bg-wine-800 transition-all opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 flex items-center justify-center gap-2 disabled:opacity-50"
-          >
-            <ShoppingBag size={15} /> {adding ? 'Adding...' : 'Quick Add'}
-          </button>
+        {isOutOfStock && (
+          <div className="absolute inset-0 bg-cream-50/40 flex items-center justify-center">
+            <span className="bg-wine-700 text-cream-50 px-4 py-1.5 rounded-full text-xs font-medium">Out of Stock</span>
+          </div>
         )}
       </div>
+
       <div className="p-4">
         <h3 className="font-serif text-base text-wine-800 line-clamp-1 group-hover:text-blush-500 transition-colors">
           {product.name}
         </h3>
-        <div className="flex items-center gap-2 mt-1.5">
+
+        {/* Tags row — clean, under image */}
+        <div className="flex flex-wrap items-center gap-1.5 mt-2">
+          {product.is_featured && (
+            <span className="text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-gold-100 text-gold-700">Featured</span>
+          )}
+          {hasDiscount && (
+            <span className="text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-blush-100 text-blush-600">Sale</span>
+          )}
+          {isLowStock && !isOutOfStock && (
+            <span className="text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">Low Stock</span>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2 mt-2.5">
           <span className="text-wine-700 font-semibold">{formatBDT(minPrice)}</span>
           {hasDiscount && (
             <span className="text-cream-400 line-through text-sm">{formatBDT(minCompare)}</span>
           )}
         </div>
+
+        {/* Action buttons */}
+        {!isOutOfStock && (
+          <div className="flex gap-2 mt-3">
+            <button
+              onClick={handleQuickAdd}
+              disabled={adding}
+              className="flex-1 flex items-center justify-center gap-1.5 bg-cream-100 text-wine-700 py-2 rounded-lg text-xs font-medium hover:bg-cream-200 transition-all disabled:opacity-50"
+            >
+              <ShoppingBag size={14} /> {adding ? 'Adding...' : 'Add'}
+            </button>
+            <button
+              onClick={handleBuyNow}
+              disabled={buying}
+              className="flex-1 flex items-center justify-center gap-1.5 bg-wine-700 text-cream-50 py-2 rounded-lg text-xs font-medium hover:bg-wine-800 transition-all disabled:opacity-50"
+            >
+              <Zap size={14} /> {buying ? '...' : 'Buy Now'}
+            </button>
+            <button
+              onClick={handleShare}
+              className="w-9 h-9 flex items-center justify-center rounded-lg border border-cream-300 text-wine-500 hover:border-blush-300 hover:text-blush-500 transition-all shrink-0"
+              aria-label="Share product"
+            >
+              <Share2 size={14} />
+            </button>
+          </div>
+        )}
       </div>
     </Link>
   )

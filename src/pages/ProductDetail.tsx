@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { Heart, ShoppingBag, Truck, RefreshCw, Shield, Minus, Plus, Star, ChevronRight, X } from 'lucide-react'
+import { Heart, ShoppingBag, Truck, RefreshCw, Shield, Minus, Plus, Star, ChevronRight, X, Share2, Link2, Facebook, MessageCircle, Copy } from 'lucide-react'
 import { supabase, type Product, type Review } from '../lib/supabase'
 import { formatBDT } from '../lib/constants'
 import { useCart } from '../contexts/CartContext'
@@ -26,6 +26,8 @@ export default function ProductDetail() {
   const [isWishlisted, setIsWishlisted] = useState(false)
   const [reviewForm, setReviewForm] = useState({ rating: 5, title: '', body: '' })
   const [submittingReview, setSubmittingReview] = useState(false)
+  const [showShare, setShowShare] = useState(false)
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     async function load() {
@@ -131,6 +133,8 @@ export default function ProductDetail() {
     setSubmittingReview(false)
   }
 
+  const handleShare = () => setShowShare(true)
+
   if (loading) {
     return (
       <div className="section-padding py-20">
@@ -153,6 +157,29 @@ export default function ProductDetail() {
         <Link to="/shop" className="btn-primary">Back to Shop</Link>
       </div>
     )
+  }
+
+  const shareUrl = `${window.location.origin}/product/${product.slug}`
+  const shareText = `Check out ${product.name} on Baby's & Mom's Clothing!`
+
+  const copyLink = () => {
+    navigator.clipboard.writeText(shareUrl)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  const shareLinks = [
+    { name: 'WhatsApp', icon: MessageCircle, color: 'bg-green-500', url: `https://wa.me/?text=${encodeURIComponent(shareText + ' ' + shareUrl)}` },
+    { name: 'Facebook', icon: Facebook, color: 'bg-blue-600', url: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}` },
+    { name: 'Messenger', icon: MessageCircle, color: 'bg-blue-500', url: `https://www.facebook.com/dialog/send?link=${encodeURIComponent(shareUrl)}&app_id=0` },
+  ]
+
+  const nativeShare = () => {
+    if (navigator.share) {
+      navigator.share({ title: product.name, text: shareText, url: shareUrl }).catch(() => {})
+    } else {
+      copyLink()
+    }
   }
 
   const avgRating = reviews.length ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length : 0
@@ -257,6 +284,9 @@ export default function ProductDetail() {
             <button onClick={handleWishlist} className={`w-12 h-12 rounded-full border-2 flex items-center justify-center transition-all shrink-0 ${isWishlisted ? 'border-blush-400 bg-blush-100 text-blush-500' : 'border-cream-400 hover:border-blush-400 hover:bg-blush-100 text-wine-600'}`} aria-label="Add to wishlist">
               <Heart size={20} className={isWishlisted ? 'fill-blush-400' : ''} />
             </button>
+            <button onClick={handleShare} className="w-12 h-12 rounded-full border-2 flex items-center justify-center transition-all shrink-0 border-cream-400 hover:border-blush-400 hover:bg-blush-100 text-wine-600" aria-label="Share product">
+              <Share2 size={20} />
+            </button>
           </div>
 
           <div className="grid grid-cols-3 gap-4 py-6 border-t border-cream-200">
@@ -325,6 +355,61 @@ export default function ProductDetail() {
             </table>
             <p className="text-xs text-wine-400 mt-4">Tip: When in doubt, size up! Babies grow quickly and our fabrics have a comfortable fit.</p>
             <button onClick={() => setShowSizeGuide(false)} className="btn-secondary mt-6 w-full">Got it</button>
+          </div>
+        </div>
+      )}
+
+      {/* Share Modal */}
+      {showShare && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setShowShare(false)}>
+          <div className="absolute inset-0 bg-black/40" />
+          <div className="relative bg-cream-50 rounded-2xl max-w-md w-full p-6 animate-scale-in" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-serif text-wine-800">Share this product</h2>
+              <button onClick={() => setShowShare(false)} className="text-wine-400"><X size={24} /></button>
+            </div>
+
+            {/* Native share button (mobile) */}
+            {typeof navigator !== 'undefined' && 'share' in navigator && (
+              <button onClick={nativeShare} className="btn-primary w-full mb-4 flex items-center justify-center gap-2">
+                <Share2 size={18} /> Share via device
+              </button>
+            )}
+
+            {/* Social share buttons */}
+            <div className="grid grid-cols-3 gap-3 mb-5">
+              {shareLinks.map((s) => (
+                <a
+                  key={s.name}
+                  href={s.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex flex-col items-center gap-2 p-3 rounded-xl bg-cream-100 hover:bg-cream-200 transition-colors"
+                >
+                  <div className={`w-11 h-11 rounded-full ${s.color} flex items-center justify-center text-white`}>
+                    <s.icon size={20} />
+                  </div>
+                  <span className="text-xs text-wine-600 font-medium">{s.name}</span>
+                </a>
+              ))}
+            </div>
+
+            {/* Copy link */}
+            <div className="flex items-center gap-2 bg-cream-100 rounded-xl p-3">
+              <Link2 size={16} className="text-wine-400 shrink-0 ml-1" />
+              <input
+                type="text"
+                value={shareUrl}
+                readOnly
+                className="flex-1 bg-transparent text-sm text-wine-600 outline-none truncate"
+              />
+              <button
+                onClick={copyLink}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all shrink-0 ${copied ? 'bg-green-100 text-green-700' : 'bg-wine-700 text-cream-50 hover:bg-wine-800'}`}
+              >
+                {copied ? <><Copy size={14} /> Copied!</> : 'Copy'}
+              </button>
+            </div>
           </div>
         </div>
       )}
