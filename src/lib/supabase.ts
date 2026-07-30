@@ -38,6 +38,7 @@ export type Product = {
   name: string
   slug: string
   description: string | null
+  description_bn: string | null
   category_id: string | null
   images: string[]
   tags: string[]
@@ -201,6 +202,9 @@ export type SiteSettings = {
   nagad_merchant_id: string | null
   nagad_api_key: string | null
   payment_mode: string | null
+  telegram_bot_token: string | null
+  telegram_chat_id: string | null
+  telegram_bot_username: string | null
   created_at: string
   updated_at: string
 }

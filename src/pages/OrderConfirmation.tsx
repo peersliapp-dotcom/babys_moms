@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link, useSearchParams } from 'react-router-dom'
-import { CheckCircle, Package, Truck, Home as HomeIcon, Clock, ShieldCheck, AlertCircle, Phone } from 'lucide-react'
+import { CircleCheck as CheckCircle, Package, Truck, Chrome as HomeIcon, Clock, ShieldCheck, CircleAlert as AlertCircle, Phone, Send } from 'lucide-react'
 import { supabase, type Order } from '../lib/supabase'
 import { formatBDT } from '../lib/constants'
 
@@ -9,6 +9,7 @@ export default function OrderConfirmation() {
   const [searchParams] = useSearchParams()
   const [order, setOrder] = useState<Order | null>(null)
   const [loading, setLoading] = useState(true)
+  const [telegramBot, setTelegramBot] = useState<string | null>(null)
 
   const paymentResult = searchParams.get('payment')
 
@@ -24,6 +25,15 @@ export default function OrderConfirmation() {
     }
     if (orderNumber) load()
   }, [orderNumber])
+
+  useEffect(() => {
+    supabase.from('site_settings').select('telegram_bot_username, telegram_bot_token').limit(1).maybeSingle()
+      .then(({ data }) => {
+        if (data?.telegram_bot_username && data?.telegram_bot_token) {
+          setTelegramBot(data.telegram_bot_username)
+        }
+      })
+  }, [])
 
   if (loading) {
     return (
@@ -216,6 +226,18 @@ export default function OrderConfirmation() {
         <Link to="/shop" className="btn-primary flex-1 text-center">Continue Shopping</Link>
         {order.user_id && <Link to="/account" className="btn-outline flex-1 text-center">View Orders</Link>}
       </div>
+
+      {telegramBot && (
+        <a
+          href={`https://t.me/${telegramBot}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-6 flex items-center justify-center gap-2 w-full py-3 rounded-full bg-[#229ED9] text-white text-sm font-medium hover:bg-[#1d8ec2] transition-colors"
+        >
+          <Send size={16} />
+          Track this order on Telegram
+        </a>
+      )}
     </div>
   )
 }

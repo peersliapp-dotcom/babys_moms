@@ -8,8 +8,10 @@ import { useToast } from '../contexts/ToastContext'
 import { useAuth } from '../contexts/AuthContext'
 import ProductCard from '../components/ProductCard'
 import Seo from '../components/Seo'
+import { useLanguage } from '../contexts/LanguageContext'
 
 export default function ProductDetail() {
+  const { lang } = useLanguage()
   const { slug } = useParams()
   const { addToCart } = useCart()
   const { showToast } = useToast()
@@ -275,7 +277,7 @@ export default function ProductDetail() {
             )}
           </div>
 
-          {product.description && <p className="text-wine-600 leading-relaxed mb-6">{product.description}</p>}
+          {product.description && <p className="text-wine-600 leading-relaxed mb-6">{(lang === 'bn' && product.description_bn) ? product.description_bn : product.description}</p>}
 
           {/* Size Selector */}
           {product.variants && product.variants.length > 0 && (

@@ -107,6 +107,11 @@ export default function Checkout() {
 
       await supabase.from('order_items').insert(orderItems)
 
+      // Send Telegram order notification to admin
+      supabase.functions.invoke('telegram-bot', {
+        body: JSON.stringify({ action: 'notify_order', order_id: order.id }),
+      }).catch(() => { /* non-blocking — notification failure should not break checkout */ })
+
       // Decrement stock via edge function
       const stockItems = items.map((item) => ({
         variant_id: item.variant_id,
