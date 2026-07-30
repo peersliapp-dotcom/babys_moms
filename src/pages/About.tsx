@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Crown, Heart, Shield, Leaf, Phone, Mail, MapPin } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { supabase, type SiteSettings } from '../lib/supabase'
+import Seo from '../components/Seo'
 
 export default function About() {
   const [settings, setSettings] = useState<SiteSettings | null>(null)
@@ -18,6 +19,11 @@ export default function About() {
 
   return (
     <div className="animate-fade-in">
+      <Seo
+        title="Our Story"
+        description="Learn about Baby's and Mom's Clothing — a Bangladesh brand crafting premium baby and maternity wear with the softest, safest fabrics, made with love."
+        path="/about"
+      />
       {/* Hero */}
       <section className="relative h-[40vh] min-h-[300px] overflow-hidden">
         <img

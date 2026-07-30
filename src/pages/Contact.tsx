@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Mail, Phone, MapPin, Send } from 'lucide-react'
 import { useToast } from '../contexts/ToastContext'
 import { supabase, type SiteSettings } from '../lib/supabase'
+import Seo from '../components/Seo'
 
 export default function Contact() {
   const { showToast } = useToast()
@@ -31,6 +32,11 @@ export default function Contact() {
 
   return (
     <div className="section-padding py-12 max-w-5xl mx-auto animate-fade-in">
+      <Seo
+        title="Contact Us"
+        description="Get in touch with Baby's and Mom's Clothing. We respond within 24 hours to questions about orders, sizing, shipping and returns across Bangladesh."
+        path="/contact"
+      />
       <div className="text-center mb-10">
         <h1 className="text-3xl font-serif text-wine-800 mb-3">Get in Touch</h1>
         <p className="text-wine-500">We'd love to hear from you. Send us a message and we'll respond within 24 hours.</p>

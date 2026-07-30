@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+
+# Block admin and account areas from indexing
+Disallow: /admin
+Disallow: /account
+Disallow: /checkout
+Disallow: /cart
+Disallow: /wishlist
+Disallow: /login
+Disallow: /signup
+
+Sitemap: https://babysandmoms.net/sitemap.xml

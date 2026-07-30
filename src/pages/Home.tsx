@@ -3,6 +3,18 @@ import { Link } from 'react-router-dom'
 import { Crown, Truck, RefreshCw, Shield, ChevronRight } from 'lucide-react'
 import { supabase, type Product, type Category, type Banner, type SiteSettings } from '../lib/supabase'
 import ProductCard from '../components/ProductCard'
+import Seo from '../components/Seo'
+
+const homeJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: "Baby's and Mom's Clothing",
+  url: 'https://babysandmoms.net',
+  logo: 'https://babysandmoms.net/bmlogonew2.png',
+  description:
+    "Premium baby and maternity clothing from Bangladesh, crafted with the softest fabrics and utmost care.",
+  areaServed: 'BD',
+}
 
 export default function Home() {
   const [featured, setFeatured] = useState<Product[]>([])
@@ -53,6 +65,12 @@ export default function Home() {
 
   return (
     <div className="animate-fade-in">
+      <Seo
+        title=""
+        description="Shop premium baby and maternity clothing from Bangladesh. Soft, safe fabrics for your little one and comfortable maternity wear — made with love."
+        path="/"
+        jsonLd={homeJsonLd}
+      />
       {/* Hero Section */}
       <section className="relative h-[60vh] min-h-[420px] md:h-[70vh] md:min-h-[500px] overflow-hidden">
         <div className="absolute inset-0">
