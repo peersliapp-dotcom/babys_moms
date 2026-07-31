@@ -93,12 +93,26 @@ Deno.serve(async (req: Request) => {
     );
 
     const url = new URL(req.url);
-    const action = url.searchParams.get("action") ?? (req.method === "POST" ? await req.json().then((b: { action?: string }) => b.action ?? "").catch(() => "") : "");
+
+    // Parse the body ONCE and reuse it in all handlers.
+    // Reading req.json() a second time throws because the stream is already consumed.
+    let body: Record<string, unknown> = {};
+    if (req.method === "POST") {
+      try {
+        body = await req.json();
+      } catch {
+        // Body may be empty or non-JSON
+      }
+    }
+
+    let action = url.searchParams.get("action");
+    if (!action) {
+      action = (body.action as string) ?? "";
+    }
 
     // ─── Notify: send new order to admin Telegram chat ───────────────────
     if (action === "notify_order") {
-      const body = await req.json();
-      const orderId: string = body.order_id;
+      const orderId = body.order_id as string;
       if (!orderId) {
         return new Response(JSON.stringify({ error: "order_id is required" }), {
           status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -138,7 +152,7 @@ Deno.serve(async (req: Request) => {
 
     // ─── Telegram Webhook: handle incoming messages from customers ───────
     if (action === "webhook") {
-      const update = await req.json();
+      const update = body;
       const settings = await getSettings(supabase);
       if (!settings?.telegram_bot_token) {
         return new Response(JSON.stringify({ error: "telegram_not_configured" }), {
@@ -149,7 +163,7 @@ Deno.serve(async (req: Request) => {
 
       // Handle callback queries (button clicks)
       if (update.callback_query) {
-        const cb = update.callback_query;
+        const cb = update.callback_query as { id: string; message?: { chat?: { id: number } }; data?: string; from?: { username?: string; first_name?: string } };
         const chatId = cb.message?.chat?.id;
         const data = cb.data as string;
         if (chatId && data?.startsWith("track:")) {
@@ -182,7 +196,7 @@ Deno.serve(async (req: Request) => {
         });
       }
 
-      const msg = update.message;
+      const msg = update.message as { chat?: { id: number }; text?: string; from?: { first_name?: string; username?: string } } | undefined;
       if (!msg?.chat?.id || !msg.text) {
         return new Response(JSON.stringify({ success: true }), {
           status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -280,8 +294,7 @@ Deno.serve(async (req: Request) => {
 
     // ─── Set webhook URL ─────────────────────────────────────────────────
     if (action === "set_webhook") {
-      const body = await req.json();
-      const webhookUrl: string = body.webhook_url;
+      const webhookUrl = body.webhook_url as string;
       const settings = await getSettings(supabase);
       if (!settings?.telegram_bot_token) {
         return new Response(JSON.stringify({ error: "telegram_not_configured" }), {
