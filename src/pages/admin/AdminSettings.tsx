@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Save, Upload, Phone, Mail, MapPin, Instagram, Facebook, Youtube, Twitter, Truck, CreditCard, Send } from 'lucide-react'
-import { supabase, type SiteSettings } from '../../lib/supabase'
+import { Save, Upload, Phone, Mail, MapPin, Instagram, Facebook, Youtube, Twitter, Truck, CreditCard, Send, CircleCheck as CheckCircle2, Loader as Loader2, Link2 } from 'lucide-react'
+import { supabase, supabaseUrl, type SiteSettings } from '../../lib/supabase'
 import { useToast } from '../../contexts/ToastContext'
 
 export default function AdminSettings() {
@@ -12,6 +12,7 @@ export default function AdminSettings() {
   const [uploadingHero, setUploadingHero] = useState(false)
   const [uploadingHeroMobile, setUploadingHeroMobile] = useState(false)
   const [connectingTelegram, setConnectingTelegram] = useState(false)
+  const [telegramConnected, setTelegramConnected] = useState(false)
 
   useEffect(() => { load() }, [])
 
@@ -52,10 +53,31 @@ export default function AdminSettings() {
       telegram_bot_token: settings.telegram_bot_token,
       telegram_chat_id: settings.telegram_chat_id,
       telegram_bot_username: settings.telegram_bot_username,
+      whatsapp_number: settings.whatsapp_number,
     }).eq('id', settings.id)
     if (error) showToast('Failed to save settings', 'error')
     else showToast('Settings saved!', 'success')
     setSaving(false)
+  }
+
+  const handleConnectTelegram = async () => {
+    if (!settings?.telegram_bot_token) {
+      showToast('Please enter and save your bot token first', 'error')
+      return
+    }
+    setConnectingTelegram(true)
+    try {
+      const webhookUrl = `${supabaseUrl}/functions/v1/telegram-bot?action=webhook`
+      const { data, error } = await supabase.functions.invoke('telegram-bot', {
+        body: JSON.stringify({ action: 'set_webhook', webhook_url: webhookUrl }),
+      })
+      if (error || data?.error) throw new Error(data?.error ?? 'Failed to connect')
+      setTelegramConnected(true)
+      showToast('Telegram bot connected! Customers can now message your bot.', 'success')
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Failed to connect Telegram bot', 'error')
+    }
+    setConnectingTelegram(false)
   }
 
   const handleImageUpload = async (file: File, field: 'logo_url' | 'hero_image_url' | 'hero_mobile_image_url', setUploading: (v: boolean) => void) => {
@@ -307,9 +329,37 @@ export default function AdminSettings() {
 
       {/* Telegram Integration */}
       <div className="card p-6 mb-6">
-        <h2 className="text-lg font-serif text-wine-800 mb-4 flex items-center gap-2"><Send size={18} /> Telegram Integration</h2>
+        <h2 className="text-lg font-serif text-wine-800 mb-4 flex items-center gap-2"><Send size={18} /> Telegram & WhatsApp Integration</h2>
         <p className="text-sm text-wine-400 mb-4">Connect a Telegram bot to receive instant new-order notifications and offer live customer support. Create a bot with <a href="https://t.me/BotFather" target="_blank" rel="noopener noreferrer" className="text-blush-500 underline">@BotFather</a> on Telegram to get your bot token.</p>
         <div className="space-y-4">
+          {/* Connect webhook button */}
+          <div className="flex items-center gap-3 p-3 rounded-xl bg-cream-100">
+            {telegramConnected ? (
+              <CheckCircle2 size={20} className="text-green-600 shrink-0" />
+            ) : (
+              <Link2 size={20} className="text-wine-400 shrink-0" />
+            )}
+            <div className="flex-1">
+              <p className="text-sm font-medium text-wine-700">Telegram Webhook</p>
+              <p className="text-xs text-wine-400">Registers your bot so it can receive and reply to customer messages automatically.</p>
+            </div>
+            <button
+              onClick={handleConnectTelegram}
+              disabled={connectingTelegram || !settings.telegram_bot_token}
+              className="btn-secondary flex items-center gap-2 text-sm shrink-0 disabled:opacity-50"
+            >
+              {connectingTelegram ? (
+                <><Loader2 size={14} className="animate-spin" /> Connecting...</>
+              ) : telegramConnected ? (
+                <><CheckCircle2 size={14} /> Connected</>
+              ) : (
+                <>Connect</>
+              )}
+            </button>
+          </div>
+          {!settings.telegram_bot_token && (
+            <p className="text-xs text-amber-600 -mt-2">Save your bot token first, then click Connect.</p>
+          )}
           <div>
             <label className="text-sm text-wine-600 mb-1.5 block">Bot Username (without @)</label>
             <input
@@ -342,6 +392,17 @@ export default function AdminSettings() {
               placeholder="123456789"
             />
             <p className="text-xs text-wine-400 mt-1">Where new order notifications are sent. Message <a href="https://t.me/userinfobot" target="_blank" rel="noopener noreferrer" className="text-blush-500 underline">@userinfobot</a> on Telegram to find your chat ID.</p>
+          </div>
+          <div className="border-t border-cream-200 pt-4">
+            <label className="text-sm text-wine-600 mb-1.5 block">WhatsApp Support Number</label>
+            <input
+              type="text"
+              value={settings.whatsapp_number ?? ''}
+              onChange={(e) => setSettings({ ...settings, whatsapp_number: e.target.value })}
+              className="input-field"
+              placeholder="8801XXXXXXXXX"
+            />
+            <p className="text-xs text-wine-400 mt-1">Customers can tap a WhatsApp button to chat with you for support. Enter the number with country code, no + sign (e.g. 8801XXXXXXXXX).</p>
           </div>
         </div>
       </div>
