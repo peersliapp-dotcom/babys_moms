@@ -191,6 +191,9 @@ export default function Shop() {
     setPriceRange([lo, hi])
   }
 
+  const hasPendingPriceChange =
+    (Number(draftMin) || 0) !== priceRange[0] || (Number(draftMax) || maxPrice) !== priceRange[1]
+
   const filtered = useMemo(() => {
     let result = [...products]
 
@@ -328,7 +331,7 @@ export default function Shop() {
 
       <div>
         <h4 className="font-semibold text-wine-800 text-sm uppercase tracking-wide mb-3">Price Range</h4>
-        <div className="flex gap-2 mb-2">
+        <div className="flex gap-2">
           <div className="flex-1 relative">
             <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-wine-400 pointer-events-none">৳</span>
             <input
@@ -337,9 +340,10 @@ export default function Shop() {
               min={0}
               step={50}
               onChange={(e) => setDraftMin(e.target.value)}
-              onBlur={applyPriceRange}
               onKeyDown={(e) => e.key === 'Enter' && applyPriceRange()}
-              className="w-full pl-6 pr-2 py-1.5 rounded-lg border border-cream-300 bg-white text-sm text-wine-700 focus:outline-none focus:ring-2 focus:ring-blush-300"
+              className={`w-full pl-6 pr-2 py-1.5 rounded-lg border bg-white text-sm text-wine-700 focus:outline-none focus:ring-2 focus:ring-blush-300 transition-colors ${
+                hasPendingPriceChange ? 'border-blush-400' : 'border-cream-300'
+              }`}
               placeholder="Min"
             />
           </div>
@@ -352,25 +356,39 @@ export default function Shop() {
               min={0}
               step={50}
               onChange={(e) => setDraftMax(e.target.value)}
-              onBlur={applyPriceRange}
               onKeyDown={(e) => e.key === 'Enter' && applyPriceRange()}
-              className="w-full pl-6 pr-2 py-1.5 rounded-lg border border-cream-300 bg-white text-sm text-wine-700 focus:outline-none focus:ring-2 focus:ring-blush-300"
+              className={`w-full pl-6 pr-2 py-1.5 rounded-lg border bg-white text-sm text-wine-700 focus:outline-none focus:ring-2 focus:ring-blush-300 transition-colors ${
+                hasPendingPriceChange ? 'border-blush-400' : 'border-cream-300'
+              }`}
               placeholder="Max"
             />
           </div>
         </div>
-        {(priceRange[0] > 0 || priceRange[1] < maxPrice) && (
+        <div className="flex items-center gap-3 mt-2.5 h-6">
           <button
-            onClick={() => {
-              setPriceRange([0, maxPrice])
-              setDraftMin('0')
-              setDraftMax(String(maxPrice))
-            }}
-            className="text-xs text-wine-400 hover:text-wine-600 transition-colors"
+            onClick={applyPriceRange}
+            disabled={!hasPendingPriceChange}
+            className={`text-xs font-medium px-3 py-1 rounded-lg transition-all duration-300 ${
+              hasPendingPriceChange
+                ? 'opacity-100 bg-wine-700 text-cream-50 hover:bg-wine-800'
+                : 'opacity-0 pointer-events-none bg-cream-200 text-wine-300'
+            }`}
           >
-            Reset price
+            Apply
           </button>
-        )}
+          {(priceRange[0] > 0 || priceRange[1] < maxPrice) && !hasPendingPriceChange && (
+            <button
+              onClick={() => {
+                setPriceRange([0, maxPrice])
+                setDraftMin('0')
+                setDraftMax(String(maxPrice))
+              }}
+              className="text-xs text-wine-400 hover:text-wine-600 transition-colors"
+            >
+              Reset price
+            </button>
+          )}
+        </div>
       </div>
     </div>
   )
