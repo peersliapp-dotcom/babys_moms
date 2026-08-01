@@ -102,7 +102,10 @@ export default function Shop() {
   const [showFilters, setShowFilters] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState<string | null>(categorySlug ?? null)
   const [sortBy, setSortBy] = useState<'newest' | 'price-low' | 'price-high' | 'name'>('newest')
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 5000])
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 0])
+  const [draftMin, setDraftMin] = useState('')
+  const [draftMax, setDraftMax] = useState('')
+  const priceRangeInitialized = useRef(false)
   const [selectedSizes, setSelectedSizes] = useState<string[]>([])
   const [selectedColors, setSelectedColors] = useState<string[]>([])
   const [selectedAges, setSelectedAges] = useState<string[]>([])
@@ -164,12 +167,29 @@ export default function Shop() {
   }, [products])
 
   const maxPrice = useMemo(() => {
-    let m = 5000
+    let m = 0
     products.forEach((p) => {
       p.variants?.forEach((v) => { if (v.price > m) m = v.price })
     })
-    return Math.ceil(m / 500) * 500
+    return m > 0 ? Math.ceil(m / 500) * 500 : 5000
   }, [products])
+
+  useEffect(() => {
+    if (!priceRangeInitialized.current && maxPrice > 0) {
+      setPriceRange([0, maxPrice])
+      setDraftMin('0')
+      setDraftMax(String(maxPrice))
+      priceRangeInitialized.current = true
+    }
+  }, [maxPrice])
+
+  function applyPriceRange() {
+    const lo = Math.max(0, Number(draftMin) || 0)
+    const hi = Math.max(lo, Number(draftMax) || maxPrice)
+    setDraftMin(String(lo))
+    setDraftMax(String(hi))
+    setPriceRange([lo, hi])
+  }
 
   const filtered = useMemo(() => {
     let result = [...products]
@@ -307,36 +327,50 @@ export default function Shop() {
       </div>
 
       <div>
-        <h4 className="font-semibold text-wine-800 text-sm uppercase tracking-wide mb-4">Price Range</h4>
-        <div className="flex gap-2">
+        <h4 className="font-semibold text-wine-800 text-sm uppercase tracking-wide mb-3">Price Range</h4>
+        <div className="flex gap-2 mb-2">
           <div className="flex-1 relative">
             <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-wine-400 pointer-events-none">৳</span>
             <input
               type="number"
-              value={priceRange[0]}
+              value={draftMin}
               min={0}
-              max={priceRange[1]}
               step={50}
-              onChange={(e) => setPriceRange([Math.min(Number(e.target.value) || 0, priceRange[1]), priceRange[1]])}
+              onChange={(e) => setDraftMin(e.target.value)}
+              onBlur={applyPriceRange}
+              onKeyDown={(e) => e.key === 'Enter' && applyPriceRange()}
               className="w-full pl-6 pr-2 py-1.5 rounded-lg border border-cream-300 bg-white text-sm text-wine-700 focus:outline-none focus:ring-2 focus:ring-blush-300"
               placeholder="Min"
             />
           </div>
-          <span className="text-wine-300 self-center">—</span>
+          <span className="text-wine-300 self-center text-sm">—</span>
           <div className="flex-1 relative">
             <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-wine-400 pointer-events-none">৳</span>
             <input
               type="number"
-              value={priceRange[1]}
-              min={priceRange[0]}
-              max={maxPrice}
+              value={draftMax}
+              min={0}
               step={50}
-              onChange={(e) => setPriceRange([priceRange[0], Math.max(Number(e.target.value) || maxPrice, priceRange[0])])}
+              onChange={(e) => setDraftMax(e.target.value)}
+              onBlur={applyPriceRange}
+              onKeyDown={(e) => e.key === 'Enter' && applyPriceRange()}
               className="w-full pl-6 pr-2 py-1.5 rounded-lg border border-cream-300 bg-white text-sm text-wine-700 focus:outline-none focus:ring-2 focus:ring-blush-300"
               placeholder="Max"
             />
           </div>
         </div>
+        {(priceRange[0] > 0 || priceRange[1] < maxPrice) && (
+          <button
+            onClick={() => {
+              setPriceRange([0, maxPrice])
+              setDraftMin('0')
+              setDraftMax(String(maxPrice))
+            }}
+            className="text-xs text-wine-400 hover:text-wine-600 transition-colors"
+          >
+            Reset price
+          </button>
+        )}
       </div>
     </div>
   )
@@ -561,13 +595,13 @@ export default function Shop() {
           )}
 
           {loading ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 sm:gap-4 md:gap-6">
               {[...Array(6)].map((_, i) => (
                 <div key={i} className="aspect-[4/5] rounded-2xl bg-cream-100 animate-pulse" />
               ))}
             </div>
           ) : filtered.length > 0 ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 sm:gap-4 md:gap-6">
               {filtered.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
