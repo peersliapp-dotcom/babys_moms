@@ -1,16 +1,31 @@
 import { Link } from 'react-router-dom'
-import { Heart, Share2 } from 'lucide-react'
-import { type Product } from '../lib/supabase'
+import { Heart, Share2, Star } from 'lucide-react'
+import { supabase, type Product } from '../lib/supabase'
 import { formatBDT } from '../lib/constants'
 import { useCart } from '../contexts/CartContext'
 import { useToast } from '../contexts/ToastContext'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 export default function ProductCard({ product }: { product: Product }) {
   const { addToCart } = useCart()
   const { showToast } = useToast()
   const [adding, setAdding] = useState(false)
   const [buying, setBuying] = useState(false)
+  const [rating, setRating] = useState<{ avg: number; count: number } | null>(null)
+
+  useEffect(() => {
+    supabase
+      .from('reviews')
+      .select('rating')
+      .eq('product_id', product.id)
+      .eq('is_approved', true)
+      .then(({ data }) => {
+        if (data && data.length > 0) {
+          const avg = data.reduce((s, r) => s + r.rating, 0) / data.length
+          setRating({ avg, count: data.length })
+        }
+      })
+  }, [product.id])
 
   const minPrice = product.variants?.length
     ? Math.min(...product.variants.map((v) => v.price))
@@ -112,6 +127,21 @@ export default function ProductCard({ product }: { product: Product }) {
             <span className="text-cream-400 line-through text-sm">{formatBDT(minCompare)}</span>
           )}
         </div>
+
+        {rating && (
+          <div className="flex items-center gap-1.5 mt-1.5">
+            <div className="flex items-center">
+              {[1, 2, 3, 4, 5].map((n) => (
+                <Star
+                  key={n}
+                  size={12}
+                  className={n <= Math.round(rating.avg) ? 'fill-gold-400 text-gold-400' : 'text-cream-300'}
+                />
+              ))}
+            </div>
+            <span className="text-xs text-wine-400">({rating.count})</span>
+          </div>
+        )}
 
         {/* Action buttons — text only, no icons */}
         {!isOutOfStock && (
