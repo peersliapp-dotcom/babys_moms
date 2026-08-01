@@ -1,16 +1,31 @@
 import { Link } from 'react-router-dom'
-import { Heart, Share2 } from 'lucide-react'
-import { type Product } from '../lib/supabase'
+import { Heart, Share2, Star } from 'lucide-react'
+import { supabase, type Product } from '../lib/supabase'
 import { formatBDT } from '../lib/constants'
 import { useCart } from '../contexts/CartContext'
 import { useToast } from '../contexts/ToastContext'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 export default function ProductCard({ product }: { product: Product }) {
   const { addToCart } = useCart()
   const { showToast } = useToast()
   const [adding, setAdding] = useState(false)
   const [buying, setBuying] = useState(false)
+  const [rating, setRating] = useState<{ avg: number; count: number } | null>(null)
+
+  useEffect(() => {
+    supabase
+      .from('reviews')
+      .select('rating')
+      .eq('product_id', product.id)
+      .eq('is_approved', true)
+      .then(({ data }) => {
+        if (data && data.length > 0) {
+          const avg = data.reduce((s, r) => s + r.rating, 0) / data.length
+          setRating({ avg, count: data.length })
+        }
+      })
+  }, [product.id])
 
   const minPrice = product.variants?.length
     ? Math.min(...product.variants.map((v) => v.price))
@@ -88,13 +103,13 @@ export default function ProductCard({ product }: { product: Product }) {
         )}
       </div>
 
-      <div className="p-4">
-        <h3 className="font-serif text-base text-wine-800 line-clamp-1 group-hover:text-blush-500 transition-colors">
+      <div className="p-2.5 sm:p-4">
+        <h3 className="font-serif text-sm sm:text-base text-wine-800 line-clamp-1 group-hover:text-blush-500 transition-colors">
           {product.name}
         </h3>
 
         {/* Tags row — clean, under image */}
-        <div className="flex flex-wrap items-center gap-1.5 mt-2">
+        <div className="flex flex-wrap items-center gap-1 mt-1.5">
           {product.is_featured && (
             <span className="text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-gold-100 text-gold-700">Featured</span>
           )}
@@ -106,27 +121,42 @@ export default function ProductCard({ product }: { product: Product }) {
           )}
         </div>
 
-        <div className="flex items-center gap-2 mt-2.5">
-          <span className="text-wine-700 font-semibold">{formatBDT(minPrice)}</span>
+        <div className="flex items-center gap-1.5 mt-2">
+          <span className="text-wine-700 font-semibold text-sm sm:text-base">{formatBDT(minPrice)}</span>
           {hasDiscount && (
             <span className="text-cream-400 line-through text-sm">{formatBDT(minCompare)}</span>
           )}
         </div>
 
+        {rating && (
+          <div className="flex items-center gap-1.5 mt-1.5">
+            <div className="flex items-center">
+              {[1, 2, 3, 4, 5].map((n) => (
+                <Star
+                  key={n}
+                  size={12}
+                  className={n <= Math.round(rating.avg) ? 'fill-gold-400 text-gold-400' : 'text-cream-300'}
+                />
+              ))}
+            </div>
+            <span className="text-xs text-wine-400">({rating.count})</span>
+          </div>
+        )}
+
         {/* Action buttons — text only, no icons */}
         {!isOutOfStock && (
-          <div className="flex gap-2 mt-3">
+          <div className="flex gap-1.5 mt-2.5">
             <button
               onClick={handleQuickAdd}
               disabled={adding}
-              className="flex-1 bg-cream-100 text-wine-700 py-2.5 rounded-lg text-xs font-medium hover:bg-cream-200 transition-all disabled:opacity-50"
+              className="flex-1 bg-cream-100 text-wine-700 py-1.5 sm:py-2.5 rounded-lg text-[10px] sm:text-xs font-medium hover:bg-cream-200 transition-all disabled:opacity-50 whitespace-nowrap"
             >
-              {adding ? 'Adding...' : 'Add to Cart'}
+              {adding ? '...' : 'Add to Cart'}
             </button>
             <button
               onClick={handleBuyNow}
               disabled={buying}
-              className="flex-1 bg-wine-700 text-cream-50 py-2.5 rounded-lg text-xs font-medium hover:bg-wine-800 transition-all disabled:opacity-50"
+              className="flex-1 bg-wine-700 text-cream-50 py-1.5 sm:py-2.5 rounded-lg text-[10px] sm:text-xs font-medium hover:bg-wine-800 transition-all disabled:opacity-50 whitespace-nowrap"
             >
               {buying ? '...' : 'Buy Now'}
             </button>

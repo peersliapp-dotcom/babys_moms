@@ -5,115 +5,6 @@ import { supabase, type Product, type Category } from '../lib/supabase'
 import ProductCard from '../components/ProductCard'
 import Seo from '../components/Seo'
 
-// Dual-handle range slider
-function PriceRangeSlider({
-  min,
-  max,
-  value,
-  onChange,
-}: {
-  min: number
-  max: number
-  value: [number, number]
-  onChange: (v: [number, number]) => void
-}) {
-  const trackRef = useRef<HTMLDivElement>(null)
-  const dragging = useRef<'low' | 'high' | null>(null)
-
-  const pct = (v: number) => ((v - min) / (max - min)) * 100
-
-  function getValueFromX(clientX: number): number {
-    if (!trackRef.current) return min
-    const { left, width } = trackRef.current.getBoundingClientRect()
-    const ratio = Math.max(0, Math.min(1, (clientX - left) / width))
-    const raw = min + ratio * (max - min)
-    return Math.round(raw / 50) * 50
-  }
-
-  function startDrag(handle: 'low' | 'high') {
-    dragging.current = handle
-    const onMove = (e: MouseEvent | TouchEvent) => {
-      const clientX = 'touches' in e ? e.touches[0].clientX : (e as MouseEvent).clientX
-      const v = getValueFromX(clientX)
-      if (dragging.current === 'low') {
-        onChange([Math.min(v, value[1] - 50), value[1]])
-      } else {
-        onChange([value[0], Math.max(v, value[0] + 50)])
-      }
-    }
-    const onUp = () => {
-      dragging.current = null
-      window.removeEventListener('mousemove', onMove)
-      window.removeEventListener('mouseup', onUp)
-      window.removeEventListener('touchmove', onMove)
-      window.removeEventListener('touchend', onUp)
-    }
-    window.addEventListener('mousemove', onMove)
-    window.addEventListener('mouseup', onUp)
-    window.addEventListener('touchmove', onMove)
-    window.addEventListener('touchend', onUp)
-  }
-
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between text-sm text-wine-600 font-medium">
-        <span>৳{value[0].toLocaleString()}</span>
-        <span>৳{value[1].toLocaleString()}</span>
-      </div>
-      <div ref={trackRef} className="relative h-1.5 rounded-full bg-cream-300 mx-2 cursor-pointer">
-        {/* Active track */}
-        <div
-          className="absolute h-full rounded-full bg-wine-600"
-          style={{ left: `${pct(value[0])}%`, right: `${100 - pct(value[1])}%` }}
-        />
-        {/* Low handle */}
-        <button
-          onMouseDown={() => startDrag('low')}
-          onTouchStart={() => startDrag('low')}
-          style={{ left: `${pct(value[0])}%` }}
-          className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-5 h-5 rounded-full bg-white border-2 border-wine-600 shadow-md hover:scale-110 active:scale-95 transition-transform focus:outline-none focus:ring-2 focus:ring-wine-400"
-          aria-label="Minimum price"
-        />
-        {/* High handle */}
-        <button
-          onMouseDown={() => startDrag('high')}
-          onTouchStart={() => startDrag('high')}
-          style={{ left: `${pct(value[1])}%` }}
-          className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-5 h-5 rounded-full bg-white border-2 border-wine-600 shadow-md hover:scale-110 active:scale-95 transition-transform focus:outline-none focus:ring-2 focus:ring-wine-400"
-          aria-label="Maximum price"
-        />
-      </div>
-      <div className="flex gap-2 pt-1">
-        <div className="flex-1 relative">
-          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-wine-400 pointer-events-none">৳</span>
-          <input
-            type="number"
-            value={value[0]}
-            min={min}
-            max={value[1] - 50}
-            step={50}
-            onChange={(e) => onChange([Math.min(Number(e.target.value), value[1] - 50), value[1]])}
-            className="w-full pl-6 pr-2 py-1.5 rounded-lg border border-cream-300 bg-white text-sm text-wine-700 focus:outline-none focus:ring-2 focus:ring-blush-300"
-          />
-        </div>
-        <span className="text-wine-300 self-center">—</span>
-        <div className="flex-1 relative">
-          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-wine-400 pointer-events-none">৳</span>
-          <input
-            type="number"
-            value={value[1]}
-            min={value[0] + 50}
-            max={max}
-            step={50}
-            onChange={(e) => onChange([value[0], Math.max(Number(e.target.value), value[0] + 50)])}
-            className="w-full pl-6 pr-2 py-1.5 rounded-lg border border-cream-300 bg-white text-sm text-wine-700 focus:outline-none focus:ring-2 focus:ring-blush-300"
-          />
-        </div>
-      </div>
-    </div>
-  )
-}
-
 // Multi-select dropdown chip
 function FilterDropdown({
   label,
@@ -211,7 +102,10 @@ export default function Shop() {
   const [showFilters, setShowFilters] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState<string | null>(categorySlug ?? null)
   const [sortBy, setSortBy] = useState<'newest' | 'price-low' | 'price-high' | 'name'>('newest')
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 5000])
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 0])
+  const [draftMin, setDraftMin] = useState('')
+  const [draftMax, setDraftMax] = useState('')
+  const priceRangeInitialized = useRef(false)
   const [selectedSizes, setSelectedSizes] = useState<string[]>([])
   const [selectedColors, setSelectedColors] = useState<string[]>([])
   const [selectedAges, setSelectedAges] = useState<string[]>([])
@@ -273,12 +167,32 @@ export default function Shop() {
   }, [products])
 
   const maxPrice = useMemo(() => {
-    let m = 5000
+    let m = 0
     products.forEach((p) => {
       p.variants?.forEach((v) => { if (v.price > m) m = v.price })
     })
-    return Math.ceil(m / 500) * 500
+    return m > 0 ? Math.ceil(m / 500) * 500 : 5000
   }, [products])
+
+  useEffect(() => {
+    if (!priceRangeInitialized.current && maxPrice > 0) {
+      setPriceRange([0, maxPrice])
+      setDraftMin('0')
+      setDraftMax(String(maxPrice))
+      priceRangeInitialized.current = true
+    }
+  }, [maxPrice])
+
+  function applyPriceRange() {
+    const lo = Math.max(0, Number(draftMin) || 0)
+    const hi = Math.max(lo, Number(draftMax) || maxPrice)
+    setDraftMin(String(lo))
+    setDraftMax(String(hi))
+    setPriceRange([lo, hi])
+  }
+
+  const hasPendingPriceChange =
+    (Number(draftMin) || 0) !== priceRange[0] || (Number(draftMax) || maxPrice) !== priceRange[1]
 
   const filtered = useMemo(() => {
     let result = [...products]
@@ -416,13 +330,65 @@ export default function Shop() {
       </div>
 
       <div>
-        <h4 className="font-semibold text-wine-800 text-sm uppercase tracking-wide mb-4">Price Range</h4>
-        <PriceRangeSlider
-          min={0}
-          max={maxPrice}
-          value={priceRange}
-          onChange={setPriceRange}
-        />
+        <h4 className="font-semibold text-wine-800 text-sm uppercase tracking-wide mb-3">Price Range</h4>
+        <div className="flex gap-2">
+          <div className="flex-1 relative">
+            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-wine-400 pointer-events-none">৳</span>
+            <input
+              type="number"
+              value={draftMin}
+              min={0}
+              step={50}
+              onChange={(e) => setDraftMin(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && applyPriceRange()}
+              className={`w-full pl-6 pr-2 py-1.5 rounded-lg border bg-white text-sm text-wine-700 focus:outline-none focus:ring-2 focus:ring-blush-300 transition-colors ${
+                hasPendingPriceChange ? 'border-blush-400' : 'border-cream-300'
+              }`}
+              placeholder="Min"
+            />
+          </div>
+          <span className="text-wine-300 self-center text-sm">—</span>
+          <div className="flex-1 relative">
+            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-wine-400 pointer-events-none">৳</span>
+            <input
+              type="number"
+              value={draftMax}
+              min={0}
+              step={50}
+              onChange={(e) => setDraftMax(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && applyPriceRange()}
+              className={`w-full pl-6 pr-2 py-1.5 rounded-lg border bg-white text-sm text-wine-700 focus:outline-none focus:ring-2 focus:ring-blush-300 transition-colors ${
+                hasPendingPriceChange ? 'border-blush-400' : 'border-cream-300'
+              }`}
+              placeholder="Max"
+            />
+          </div>
+        </div>
+        <div className="flex items-center gap-3 mt-2.5 h-6">
+          <button
+            onClick={applyPriceRange}
+            disabled={!hasPendingPriceChange}
+            className={`text-xs font-medium px-3 py-1 rounded-lg transition-all duration-300 ${
+              hasPendingPriceChange
+                ? 'opacity-100 bg-wine-700 text-cream-50 hover:bg-wine-800'
+                : 'opacity-0 pointer-events-none bg-cream-200 text-wine-300'
+            }`}
+          >
+            Apply
+          </button>
+          {(priceRange[0] > 0 || priceRange[1] < maxPrice) && !hasPendingPriceChange && (
+            <button
+              onClick={() => {
+                setPriceRange([0, maxPrice])
+                setDraftMin('0')
+                setDraftMax(String(maxPrice))
+              }}
+              className="text-xs text-wine-400 hover:text-wine-600 transition-colors"
+            >
+              Reset price
+            </button>
+          )}
+        </div>
       </div>
     </div>
   )
@@ -647,13 +613,13 @@ export default function Shop() {
           )}
 
           {loading ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 sm:gap-4 md:gap-6">
               {[...Array(6)].map((_, i) => (
                 <div key={i} className="aspect-[4/5] rounded-2xl bg-cream-100 animate-pulse" />
               ))}
             </div>
           ) : filtered.length > 0 ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 sm:gap-4 md:gap-6">
               {filtered.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
