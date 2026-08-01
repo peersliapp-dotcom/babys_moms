@@ -18,6 +18,7 @@ export default function Shop() {
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 5000])
   const [selectedSizes, setSelectedSizes] = useState<string[]>([])
   const [selectedColors, setSelectedColors] = useState<string[]>([])
+  const [selectedAges, setSelectedAges] = useState<string[]>([])
   const [expanded, setExpanded] = useState<Set<string>>(new Set())
 
   useEffect(() => {
@@ -69,6 +70,12 @@ export default function Shop() {
     return Array.from(colors).sort()
   }, [products])
 
+  const allAges = useMemo(() => {
+    const ages = new Set<string>()
+    products.forEach((p) => p.variants?.forEach((v) => v.age && ages.add(v.age)))
+    return Array.from(ages).sort()
+  }, [products])
+
   const filtered = useMemo(() => {
     let result = [...products]
 
@@ -89,6 +96,10 @@ export default function Shop() {
 
     if (selectedColors.length > 0) {
       result = result.filter((p) => p.variants?.some((v) => v.color && selectedColors.includes(v.color)))
+    }
+
+    if (selectedAges.length > 0) {
+      result = result.filter((p) => p.variants?.some((v) => v.age && selectedAges.includes(v.age)))
     }
 
     result = result.filter((p) => {
@@ -119,13 +130,16 @@ export default function Shop() {
     }
 
     return result
-  }, [products, selectedCategory, selectedSizes, selectedColors, priceRange, sortBy, categories])
+  }, [products, selectedCategory, selectedSizes, selectedColors, selectedAges, priceRange, sortBy, categories])
 
   const toggleSize = (size: string) => {
     setSelectedSizes((prev) => prev.includes(size) ? prev.filter((s) => s !== size) : [...prev, size])
   }
   const toggleColor = (color: string) => {
     setSelectedColors((prev) => prev.includes(color) ? prev.filter((c) => c !== color) : [...prev, color])
+  }
+  const toggleAge = (age: string) => {
+    setSelectedAges((prev) => prev.includes(age) ? prev.filter((a) => a !== age) : [...prev, age])
   }
 
   const FilterPanel = () => (
@@ -241,6 +255,27 @@ export default function Shop() {
                 }`}
               >
                 {color}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {allAges.length > 0 && (
+        <div>
+          <h4 className="font-medium text-wine-800 mb-3">Age</h4>
+          <div className="flex flex-wrap gap-2">
+            {allAges.map((age) => (
+              <button
+                key={age}
+                onClick={() => toggleAge(age)}
+                className={`px-3 py-1.5 rounded-lg text-sm border transition-all ${
+                  selectedAges.includes(age)
+                    ? 'border-wine-700 bg-wine-700 text-cream-50'
+                    : 'border-cream-400 text-wine-600 hover:border-blush-300'
+                }`}
+              >
+                {age}
               </button>
             ))}
           </div>

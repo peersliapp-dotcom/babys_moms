@@ -20,6 +20,48 @@ const STORE_KB = {
   exchange: "Exchanges are available within 7 days for different sizes or colors, subject to stock availability.",
 };
 
+// Extract an order number from a message — looks for patterns like #ORD123 or ORD123 or just a long alphanumeric
+function extractOrderNumber(msg: string): string | null {
+  // Match #ORD-2024-001, ORD123, #123456, etc.
+  const match = msg.match(/#?(?:ORD[-/]?)?[A-Z0-9]{4,}/i);
+  return match ? match[0].replace(/^#/, "").toUpperCase() : null;
+}
+
+// Extract a phone number from a message — Bangladeshi numbers like 01XXXXXXXXX
+function extractPhone(msg: string): string | null {
+  const match = msg.match(/01\d{9}/);
+  return match ? match[0] : null;
+}
+
+// Convert a YouTube or Facebook video URL into an embeddable URL
+function getEmbedUrl(url: string): string | null {
+  try {
+    const u = new URL(url);
+    // YouTube: youtube.com/watch?v=ID, youtu.be/ID, youtube.com/embed/ID
+    if (u.hostname.includes("youtube.com") || u.hostname === "youtu.be") {
+      let videoId: string | null = null;
+      if (u.hostname === "youtu.be") {
+        videoId = u.pathname.slice(1);
+      } else if (u.pathname === "/watch") {
+        videoId = u.searchParams.get("v");
+      } else if (u.pathname.startsWith("/embed/")) {
+        videoId = u.pathname.split("/embed/")[1];
+      } else if (u.pathname.startsWith("/shorts/")) {
+        videoId = u.pathname.split("/shorts/")[1];
+      }
+      if (videoId) return `https://www.youtube.com/embed/${videoId}`;
+    }
+    // Facebook: facebook.com/watch?v=ID, facebook.com/{page}/videos/{ID}, fb.watch/ID
+    if (u.hostname.includes("facebook.com") || u.hostname === "fb.watch") {
+      // For Facebook, we use the plugin embed format
+      return `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&show_text=false`;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 200, headers: corsHeaders });
@@ -31,7 +73,7 @@ Deno.serve(async (req: Request) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    const { action, conversation_id, message, guest_id, guest_name, guest_email, user_id } = await req.json();
+    const { action, conversation_id, message, guest_id, guest_name, guest_email, user_id, order_number, phone } = await req.json();
 
     if (action === "start_conversation") {
       const convData: Record<string, unknown> = {
@@ -56,7 +98,7 @@ Deno.serve(async (req: Request) => {
       }
 
       // Send welcome message
-      const welcome = `Hello! Welcome to ${STORE_KB.name}! How can I help you today? You can ask me about products, shipping, returns, payment methods, or sizing.`;
+      const welcome = `Hello! Welcome to ${STORE_KB.name}! How can I help you today? You can ask me about products, shipping, returns, payment methods, sizing, or track your order by providing your order number and phone number.`;
       await supabase.from("chat_messages").insert({
         conversation_id: conv.id,
         sender: "bot",
@@ -91,7 +133,41 @@ Deno.serve(async (req: Request) => {
       const lowerMsg = message.toLowerCase();
       let reply = "";
 
-      if (lowerMsg.includes("shipping") || lowerMsg.includes("delivery") || lowerMsg.includes("deliver")) {
+      // Order tracking — check if user is trying to track an order
+      if (lowerMsg.includes("track") || lowerMsg.includes("order status") || lowerMsg.includes("where is my order")) {
+        const orderNum = extractOrderNumber(message);
+        const phoneNum = extractPhone(message);
+
+        if (orderNum && phoneNum) {
+          // Look up the order
+          const { data: order } = await supabase
+            .from("orders")
+            .select("order_number, status, payment_status, total_amount, courier_name, courier_tracking_id, created_at, order_items(product_name, quantity)")
+            .eq("order_number", orderNum)
+            .eq("guest_phone", phoneNum)
+            .maybeSingle();
+
+          if (order) {
+            const statusMap: Record<string, string> = {
+              pending: "Pending — waiting for payment confirmation",
+              paid: "Paid — payment received, preparing your order",
+              processing: "Processing — your order is being prepared",
+              shipped: "Shipped — on the way to you",
+              delivered: "Delivered — order has been delivered",
+              cancelled: "Cancelled",
+            };
+            const items = (order as any).order_items?.map((it: any) => `${it.quantity}x ${it.product_name}`).join(", ") ?? "N/A";
+            reply = `Order ${order.order_number}:\nStatus: ${statusMap[order.status] ?? order.status}\nPayment: ${order.payment_status}\nTotal: ${order.total_amount} BDT\nItems: ${items}\nPlaced: ${new Date(order.created_at).toLocaleDateString("en-GB")}`;
+            if (order.courier_name && order.courier_tracking_id) {
+              reply += `\nCourier: ${order.courier_name} (Tracking: ${order.courier_tracking_id})`;
+            }
+          } else {
+            reply = `I couldn't find an order with number ${orderNum} and phone ${phoneNum}. Please double-check and try again. Make sure to include both your order number and the phone number you used when placing the order.`;
+          }
+        } else {
+          reply = "I can help you track your order! Please provide your **order number** and the **phone number** you used when placing the order. For example: 'Track order ORD-2024-001, phone 01XXXXXXXXX'";
+        }
+      } else if (lowerMsg.includes("shipping") || lowerMsg.includes("delivery") || lowerMsg.includes("deliver")) {
         reply = STORE_KB.shipping;
       } else if (lowerMsg.includes("return") || lowerMsg.includes("refund")) {
         reply = STORE_KB.returns;
@@ -113,8 +189,6 @@ Deno.serve(async (req: Request) => {
         reply = `Hello! Welcome to ${STORE_KB.name}. How can I assist you today?`;
       } else if (lowerMsg.includes("thank")) {
         reply = "You're welcome! Is there anything else I can help you with?";
-      } else if (lowerMsg.includes("track") || lowerMsg.includes("order status")) {
-        reply = "You can track your order in the My Account section if you're logged in. For guest orders, please share your order number and I'll look it up for you.";
       } else if (lowerMsg.includes("discount") || lowerMsg.includes("coupon") || lowerMsg.includes("offer")) {
         reply = "We regularly offer discounts and promotions! Check our homepage for current featured deals. You can also apply coupon codes at checkout for additional savings.";
       } else {
@@ -128,7 +202,7 @@ Deno.serve(async (req: Request) => {
         if (products && products.length > 0) {
           reply = `I found some products that might interest you: ${products.map((p) => p.name).join(", ")}. You can find them on our Shop page!`;
         } else {
-          reply = "I'd be happy to help! Could you tell me more about what you're looking for? I can assist with products, shipping, returns, payment, sizing, or any other questions about our store.";
+          reply = "I'd be happy to help! Could you tell me more about what you're looking for? I can assist with products, shipping, returns, payment, sizing, or tracking your order.";
         }
       }
 
@@ -140,6 +214,26 @@ Deno.serve(async (req: Request) => {
       });
 
       return new Response(JSON.stringify({ reply }), {
+        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (action === "track_order") {
+      // Direct order tracking by order_number + phone
+      const { data: order, error } = await supabase
+        .from("orders")
+        .select("order_number, status, payment_status, total_amount, courier_name, courier_tracking_id, created_at, order_items(product_name, quantity)")
+        .eq("order_number", order_number)
+        .eq("guest_phone", phone)
+        .maybeSingle();
+
+      if (error || !order) {
+        return new Response(JSON.stringify({ error: "Order not found. Please check your order number and phone number." }), {
+          status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      return new Response(JSON.stringify({ order }), {
         status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }

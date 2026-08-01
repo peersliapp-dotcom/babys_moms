@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { Heart, ShoppingBag, Truck, RefreshCw, Shield, Minus, Plus, Star, ChevronRight, X, Share2, Link2, Facebook, MessageCircle, Copy } from 'lucide-react'
+import { Heart, ShoppingBag, Truck, RefreshCw, Shield, Minus, Plus, Star, ChevronRight, X, Share2, Link2, Facebook, MessageCircle, Copy, Play } from 'lucide-react'
 import { supabase, type Product, type Review } from '../lib/supabase'
 import { formatBDT } from '../lib/constants'
 import { useCart } from '../contexts/CartContext'
@@ -31,6 +31,7 @@ export default function ProductDetail() {
   const [submittingReview, setSubmittingReview] = useState(false)
   const [showShare, setShowShare] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [activeVideo, setActiveVideo] = useState(0)
 
   useEffect(() => {
     async function load() {
@@ -187,6 +188,26 @@ export default function ProductDetail() {
 
   const avgRating = reviews.length ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length : 0
 
+  function getEmbedUrl(url: string): string | null {
+    try {
+      const u = new URL(url)
+      if (u.hostname.includes('youtube.com') || u.hostname === 'youtu.be') {
+        let videoId: string | null = null
+        if (u.hostname === 'youtu.be') videoId = u.pathname.slice(1)
+        else if (u.pathname === '/watch') videoId = u.searchParams.get('v')
+        else if (u.pathname.startsWith('/embed/')) videoId = u.pathname.split('/embed/')[1]
+        else if (u.pathname.startsWith('/shorts/')) videoId = u.pathname.split('/shorts/')[1]
+        if (videoId) return `https://www.youtube.com/embed/${videoId}`
+      }
+      if (u.hostname.includes('facebook.com') || u.hostname === 'fb.watch') {
+        return `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&show_text=false`
+      }
+      return null
+    } catch {
+      return null
+    }
+  }
+
   const productImage = product.images?.[0] ?? undefined
   const productJsonLd: Record<string, unknown> = {
     '@context': 'https://schema.org',
@@ -335,6 +356,30 @@ export default function ProductDetail() {
           </div>
         </div>
       </div>
+
+      {/* Videos Section */}
+      {product.videos && product.videos.length > 0 && (
+        <section className="mt-12">
+          <h2 className="text-2xl font-serif text-wine-800 mb-6">Product Videos</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {product.videos.map((url, i) => {
+              const embedUrl = getEmbedUrl(url)
+              if (!embedUrl) return null
+              return (
+                <div key={i} className="relative aspect-video rounded-2xl overflow-hidden bg-cream-100 shadow-md">
+                  <iframe
+                    src={embedUrl}
+                    title={`Product video ${i + 1}`}
+                    className="w-full h-full"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                </div>
+              )
+            })}
+          </div>
+        </section>
+      )}
 
       {/* Reviews Section */}
       <section className="mt-16">

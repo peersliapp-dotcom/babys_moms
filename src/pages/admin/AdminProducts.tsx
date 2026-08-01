@@ -9,6 +9,7 @@ type VariantDraft = {
   id?: string
   size: string
   color: string
+  age: string
   sku: string
   price: string
   compare_at_price: string
@@ -34,6 +35,7 @@ export default function AdminProducts() {
     description_bn: '',
     category_id: '',
     images: '',
+    videos: '',
     is_featured: false,
     is_active: true,
   })
@@ -59,7 +61,7 @@ export default function AdminProducts() {
 
   const openAdd = () => {
     setEditing(null)
-    setForm({ name: '', slug: '', description: '', description_bn: '', category_id: '', images: '', is_featured: false, is_active: true })
+    setForm({ name: '', slug: '', description: '', description_bn: '', category_id: '', images: '', videos: '', is_featured: false, is_active: true })
     setVariants([])
     setVariantsExpanded(false)
     setShowForm(true)
@@ -74,6 +76,7 @@ export default function AdminProducts() {
       description_bn: product.description_bn ?? '',
       category_id: product.category_id ?? '',
       images: product.images?.join('\n') ?? '',
+      videos: product.videos?.join('\n') ?? '',
       is_featured: product.is_featured,
       is_active: product.is_active,
     })
@@ -82,6 +85,7 @@ export default function AdminProducts() {
         id: v.id,
         size: v.size ?? '',
         color: v.color ?? '',
+        age: v.age ?? '',
         sku: v.sku ?? '',
         price: String(v.price),
         compare_at_price: v.compare_at_price ? String(v.compare_at_price) : '',
@@ -96,7 +100,7 @@ export default function AdminProducts() {
   const addVariant = () => {
     setVariants([
       ...variants,
-      { size: '', color: '', sku: '', price: '', compare_at_price: '', stock_quantity: '0', is_active: true },
+      { size: '', color: '', age: '', sku: '', price: '', compare_at_price: '', stock_quantity: '0', is_active: true },
     ])
     setVariantsExpanded(true)
   }
@@ -124,6 +128,7 @@ export default function AdminProducts() {
       description_bn: form.description_bn || null,
       category_id: form.category_id || null,
       images: form.images.split('\n').map((s) => s.trim()).filter(Boolean),
+      videos: form.videos.split('\n').map((s) => s.trim()).filter(Boolean),
       is_featured: form.is_featured,
       is_active: form.is_active,
     }
@@ -159,6 +164,7 @@ export default function AdminProducts() {
         product_id: productId,
         size: v.size || null,
         color: v.color || null,
+        age: v.age || null,
         sku: v.sku || null,
         price: parseFloat(v.price) || 0,
         compare_at_price: v.compare_at_price ? parseFloat(v.compare_at_price) : null,
@@ -332,6 +338,10 @@ export default function AdminProducts() {
                 <label className="text-sm text-wine-600 mb-1.5 block">Image URLs (one per line)</label>
                 <textarea value={form.images} onChange={(e) => setForm({ ...form, images: e.target.value })} className="input-field min-h-20 resize-none" placeholder="https://images.pexels.com/..." />
               </div>
+              <div>
+                <label className="text-sm text-wine-600 mb-1.5 block">Video URLs (one per line) <span className="text-wine-400 font-normal">— YouTube or Facebook links</span></label>
+                <textarea value={form.videos} onChange={(e) => setForm({ ...form, videos: e.target.value })} className="input-field min-h-20 resize-none" placeholder="https://www.youtube.com/watch?v=..." />
+              </div>
               <div className="flex gap-6">
                 <label className="flex items-center gap-2 text-sm text-wine-600">
                   <input type="checkbox" checked={form.is_featured} onChange={(e) => setForm({ ...form, is_featured: e.target.checked })} className="w-4 h-4" />
@@ -373,6 +383,10 @@ export default function AdminProducts() {
                           <div>
                             <label className="text-xs text-wine-500 block">Color</label>
                             <input type="text" value={v.color} onChange={(e) => updateVariant(i, 'color', e.target.value)} className="w-full px-2 py-1.5 rounded-lg border border-cream-300 text-sm" placeholder="Pink" />
+                          </div>
+                          <div>
+                            <label className="text-xs text-wine-500 block">Age</label>
+                            <input type="text" value={v.age} onChange={(e) => updateVariant(i, 'age', e.target.value)} className="w-full px-2 py-1.5 rounded-lg border border-cream-300 text-sm" placeholder="0-3 months" />
                           </div>
                           <div>
                             <label className="text-xs text-wine-500 block">SKU</label>

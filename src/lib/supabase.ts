@@ -46,6 +46,7 @@ export type Product = {
   tags: string[]
   is_active: boolean
   is_featured: boolean
+  videos: string[]
   created_at: string
   updated_at: string
   category?: Category
@@ -61,6 +62,7 @@ export type ProductVariant = {
   price: number
   compare_at_price: number | null
   stock_quantity: number
+  age: string | null
   is_active: boolean
   created_at: string
 }

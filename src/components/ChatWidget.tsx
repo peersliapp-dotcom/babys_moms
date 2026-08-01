@@ -228,7 +228,7 @@ export default function ChatWidget() {
           {/* Quick replies */}
           {messages.length <= 1 && !loading && (
             <div className="px-4 pb-2 flex flex-wrap gap-2 shrink-0">
-              {['Shipping info', 'Return policy', 'Payment methods', 'Track my order'].map((q) => (
+              {['Track my order', 'Shipping info', 'Return policy', 'Payment methods'].map((q) => (
                 <button
                   key={q}
                   onClick={() => { setInput(q) }}
