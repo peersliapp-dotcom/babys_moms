@@ -5,7 +5,7 @@ import { supabase, type Product, type Category } from '../lib/supabase'
 import ProductCard from '../components/ProductCard'
 import Seo from '../components/Seo'
 
-// Dual-handle range slider — value ref prevents stale closure bug during drag
+// Dual-handle range slider
 function PriceRangeSlider({
   min,
   max,
@@ -18,11 +18,9 @@ function PriceRangeSlider({
   onChange: (v: [number, number]) => void
 }) {
   const trackRef = useRef<HTMLDivElement>(null)
-  // Keep a ref so drag handlers always read the latest value
-  const valueRef = useRef(value)
-  valueRef.current = value
+  const dragging = useRef<'low' | 'high' | null>(null)
 
-  const pct = (v: number) => Math.max(0, Math.min(100, ((v - min) / (max - min)) * 100))
+  const pct = (v: number) => ((v - min) / (max - min)) * 100
 
   function getValueFromX(clientX: number): number {
     if (!trackRef.current) return min
@@ -33,18 +31,18 @@ function PriceRangeSlider({
   }
 
   function startDrag(handle: 'low' | 'high') {
+    dragging.current = handle
     const onMove = (e: MouseEvent | TouchEvent) => {
-      e.preventDefault()
       const clientX = 'touches' in e ? e.touches[0].clientX : (e as MouseEvent).clientX
       const v = getValueFromX(clientX)
-      const [lo, hi] = valueRef.current
-      if (handle === 'low') {
-        onChange([Math.min(v, hi - 50), hi])
+      if (dragging.current === 'low') {
+        onChange([Math.min(v, value[1] - 50), value[1]])
       } else {
-        onChange([lo, Math.max(v, lo + 50)])
+        onChange([value[0], Math.max(v, value[0] + 50)])
       }
     }
     const onUp = () => {
+      dragging.current = null
       window.removeEventListener('mousemove', onMove)
       window.removeEventListener('mouseup', onUp)
       window.removeEventListener('touchmove', onMove)
@@ -52,36 +50,65 @@ function PriceRangeSlider({
     }
     window.addEventListener('mousemove', onMove)
     window.addEventListener('mouseup', onUp)
-    window.addEventListener('touchmove', onMove, { passive: false })
+    window.addEventListener('touchmove', onMove)
     window.addEventListener('touchend', onUp)
   }
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between text-sm text-wine-600 font-semibold">
-        <span className="bg-cream-100 px-2.5 py-1 rounded-lg">৳{value[0].toLocaleString()}</span>
-        <span className="text-wine-300 text-xs">to</span>
-        <span className="bg-cream-100 px-2.5 py-1 rounded-lg">৳{value[1].toLocaleString()}</span>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between text-sm text-wine-600 font-medium">
+        <span>৳{value[0].toLocaleString()}</span>
+        <span>৳{value[1].toLocaleString()}</span>
       </div>
-      <div ref={trackRef} className="relative h-1.5 rounded-full bg-cream-300 mx-2.5">
+      <div ref={trackRef} className="relative h-1.5 rounded-full bg-cream-300 mx-2 cursor-pointer">
+        {/* Active track */}
         <div
           className="absolute h-full rounded-full bg-wine-600"
           style={{ left: `${pct(value[0])}%`, right: `${100 - pct(value[1])}%` }}
         />
+        {/* Low handle */}
         <button
           onMouseDown={() => startDrag('low')}
           onTouchStart={() => startDrag('low')}
           style={{ left: `${pct(value[0])}%` }}
-          className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-5 h-5 rounded-full bg-white border-2 border-wine-600 shadow-md hover:scale-110 transition-transform focus:outline-none focus:ring-2 focus:ring-wine-300 cursor-grab active:cursor-grabbing"
+          className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-5 h-5 rounded-full bg-white border-2 border-wine-600 shadow-md hover:scale-110 active:scale-95 transition-transform focus:outline-none focus:ring-2 focus:ring-wine-400"
           aria-label="Minimum price"
         />
+        {/* High handle */}
         <button
           onMouseDown={() => startDrag('high')}
           onTouchStart={() => startDrag('high')}
           style={{ left: `${pct(value[1])}%` }}
-          className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-5 h-5 rounded-full bg-white border-2 border-wine-600 shadow-md hover:scale-110 transition-transform focus:outline-none focus:ring-2 focus:ring-wine-300 cursor-grab active:cursor-grabbing"
+          className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-5 h-5 rounded-full bg-white border-2 border-wine-600 shadow-md hover:scale-110 active:scale-95 transition-transform focus:outline-none focus:ring-2 focus:ring-wine-400"
           aria-label="Maximum price"
         />
+      </div>
+      <div className="flex gap-2 pt-1">
+        <div className="flex-1 relative">
+          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-wine-400 pointer-events-none">৳</span>
+          <input
+            type="number"
+            value={value[0]}
+            min={min}
+            max={value[1] - 50}
+            step={50}
+            onChange={(e) => onChange([Math.min(Number(e.target.value), value[1] - 50), value[1]])}
+            className="w-full pl-6 pr-2 py-1.5 rounded-lg border border-cream-300 bg-white text-sm text-wine-700 focus:outline-none focus:ring-2 focus:ring-blush-300"
+          />
+        </div>
+        <span className="text-wine-300 self-center">—</span>
+        <div className="flex-1 relative">
+          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-wine-400 pointer-events-none">৳</span>
+          <input
+            type="number"
+            value={value[1]}
+            min={value[0] + 50}
+            max={max}
+            step={50}
+            onChange={(e) => onChange([value[0], Math.max(Number(e.target.value), value[0] + 50)])}
+            className="w-full pl-6 pr-2 py-1.5 rounded-lg border border-cream-300 bg-white text-sm text-wine-700 focus:outline-none focus:ring-2 focus:ring-blush-300"
+          />
+        </div>
       </div>
     </div>
   )
