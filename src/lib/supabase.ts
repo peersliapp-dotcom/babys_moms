@@ -181,6 +181,22 @@ export type Wishlist = {
   product?: Product
 }
 
+export type Subscriber = {
+  id: string
+  email: string
+  created_at: string
+}
+
+export type ContactMessage = {
+  id: string
+  name: string
+  email: string
+  subject: string
+  message: string
+  is_read: boolean
+  created_at: string
+}
+
 export type SiteSettings = {
   id: string
   logo_url: string | null

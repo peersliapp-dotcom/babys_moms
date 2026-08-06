@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Crown, Truck, RefreshCw, Shield, ChevronRight } from 'lucide-react'
+import { Crown, Truck, RefreshCw, Shield, ChevronRight, Sparkles } from 'lucide-react'
 import { supabase, type Product, type Category, type Banner, type SiteSettings } from '../lib/supabase'
 import ProductCard from '../components/ProductCard'
 import Seo from '../components/Seo'
+import { useToast } from '../contexts/ToastContext'
 
 const homeJsonLd = {
   '@context': 'https://schema.org',
@@ -18,19 +19,29 @@ const homeJsonLd = {
 
 export default function Home() {
   const [featured, setFeatured] = useState<Product[]>([])
+  const [newArrivals, setNewArrivals] = useState<Product[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [banners, setBanners] = useState<Banner[]>([])
   const [settings, setSettings] = useState<SiteSettings | null>(null)
   const [loading, setLoading] = useState(true)
+  const { showToast } = useToast()
+  const [subscribing, setSubscribing] = useState(false)
+  const [subscribed, setSubscribed] = useState(false)
 
   useEffect(() => {
     async function load() {
-      const [featuredRes, categoriesRes, bannersRes, settingsRes] = await Promise.all([
+      const [featuredRes, newArrivalsRes, categoriesRes, bannersRes, settingsRes] = await Promise.all([
         supabase
           .from('products')
           .select('*, category:categories(*), variants:product_variants(*)')
           .eq('is_active', true)
           .eq('is_featured', true)
+          .limit(8),
+        supabase
+          .from('products')
+          .select('*, category:categories(*), variants:product_variants(*)')
+          .eq('is_active', true)
+          .order('created_at', { ascending: false })
           .limit(8),
         supabase
           .from('categories')
@@ -51,6 +62,7 @@ export default function Home() {
       ])
 
       setFeatured((featuredRes.data as Product[]) ?? [])
+      setNewArrivals((newArrivalsRes.data as Product[]) ?? [])
       setCategories((categoriesRes.data as Category[]) ?? [])
       setBanners((bannersRes.data as Banner[]) ?? [])
       setSettings(settingsRes.data as SiteSettings | null)
@@ -180,6 +192,42 @@ export default function Home() {
         </div>
       </section>
 
+      {/* New Arrivals */}
+      <section className="section-padding py-12">
+        <div className="flex items-end justify-between mb-10">
+          <div>
+            <p className="text-blush-500 font-script text-xl mb-1 flex items-center gap-1.5">
+              <Sparkles size={16} className="text-gold-400" /> Fresh picks
+            </p>
+            <h2 className="text-3xl md:text-4xl font-serif text-wine-800">New Arrivals</h2>
+          </div>
+          <Link to="/shop" className="text-wine-600 hover:text-blush-500 text-sm font-medium flex items-center gap-1 transition-colors">
+            View all <ChevronRight size={16} />
+          </Link>
+        </div>
+        {loading ? (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 md:gap-6">
+            {[...Array(8)].map((_, i) => (
+              <div key={i} className="aspect-[4/5] rounded-2xl bg-cream-100 animate-pulse" />
+            ))}
+          </div>
+        ) : newArrivals.length > 0 ? (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 md:gap-6">
+            {newArrivals.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 md:gap-6">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="aspect-[4/5] rounded-2xl bg-cream-100 flex items-center justify-center text-wine-300">
+                <span className="text-sm">Coming soon</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
       {/* Featured Products */}
       <section className="section-padding py-12">
         <div className="flex items-end justify-between mb-10">
@@ -222,17 +270,48 @@ export default function Home() {
           <p className="text-wine-600 mb-6 max-w-md mx-auto">
             Subscribe and get 10% off your first order, plus early access to new collections and special offers.
           </p>
-          <form onSubmit={(e) => e.preventDefault()} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-            <input
-              type="email"
-              placeholder="Enter your email"
-              className="input-field flex-1"
-              required
-            />
-            <button type="submit" className="btn-primary whitespace-nowrap">
-              Subscribe
-            </button>
-          </form>
+          {subscribed ? (
+            <div className="max-w-md mx-auto card p-6 flex items-center justify-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center shrink-0">
+                <Crown size={18} className="text-green-600" />
+              </div>
+              <p className="text-wine-700 text-sm font-medium">You're subscribed! Check your inbox for the 10% off code.</p>
+            </div>
+          ) : (
+            <form onSubmit={async (e) => {
+              e.preventDefault()
+              const formEl = e.target as HTMLFormElement
+              const emailInput = formEl.querySelector('input[type="email"]') as HTMLInputElement
+              const email = emailInput.value.trim()
+              if (!email) return
+              setSubscribing(true)
+              const { error } = await supabase
+                .from('subscribers')
+                .insert({ email })
+              if (error) {
+                if (error.code === '23505') {
+                  showToast("You're already subscribed!", 'info')
+                } else {
+                  showToast('Something went wrong. Please try again.', 'error')
+                }
+              } else {
+                setSubscribed(true)
+                showToast('Subscribed successfully!', 'success')
+              }
+              setSubscribing(false)
+            }} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+              <input
+                type="email"
+                placeholder="Enter your email"
+                className="input-field flex-1"
+                required
+                disabled={subscribing}
+              />
+              <button type="submit" disabled={subscribing} className="btn-primary whitespace-nowrap flex items-center justify-center gap-2">
+                {subscribing ? <div className="w-5 h-5 border-2 border-cream-50 border-t-transparent rounded-full animate-spin" /> : 'Subscribe'}
+              </button>
+            </form>
+          )}
         </div>
       </section>
 

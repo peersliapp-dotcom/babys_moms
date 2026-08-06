@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { Mail, Lock, User, Eye, EyeOff, ArrowLeft } from 'lucide-react'
+import { Mail, Lock, User, Eye, EyeOff, ArrowLeft, CircleCheck as CheckCircle2 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
 import { supabase } from '../lib/supabase'
@@ -16,6 +16,23 @@ export default function Login() {
   const [resetMode, setResetMode] = useState(false)
   const [resetSent, setResetSent] = useState(false)
   const [resetting, setResetting] = useState(false)
+  const [recoveryMode, setRecoveryMode] = useState(false)
+  const [newPassword, setNewPassword] = useState('')
+  const [updatingPassword, setUpdatingPassword] = useState(false)
+  const [passwordUpdated, setPasswordUpdated] = useState(false)
+
+  useEffect(() => {
+    const { data: authListener } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setRecoveryMode(true)
+        setResetMode(false)
+        setResetSent(false)
+      }
+    })
+    return () => {
+      authListener.subscription.unsubscribe()
+    }
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -44,6 +61,91 @@ export default function Login() {
       showToast('Reset link sent! Check your email.', 'success')
     }
     setResetting(false)
+  }
+
+  const handleUpdatePassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (newPassword.length < 6) {
+      showToast('Password must be at least 6 characters', 'error')
+      return
+    }
+    setUpdatingPassword(true)
+    const { error } = await supabase.auth.updateUser({ password: newPassword })
+    if (error) {
+      showToast('Failed to update password. Please try again.', 'error')
+    } else {
+      setPasswordUpdated(true)
+      showToast('Password updated successfully!', 'success')
+    }
+    setUpdatingPassword(false)
+  }
+
+  if (recoveryMode) {
+    return (
+      <div className="section-padding py-12 max-w-md mx-auto animate-fade-in">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-serif text-wine-800 mb-2">Set New Password</h1>
+          <p className="text-wine-400 text-sm">Enter your new password below</p>
+        </div>
+
+        {passwordUpdated ? (
+          <div className="card p-6 text-center">
+            <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
+              <CheckCircle2 size={28} className="text-green-600" />
+            </div>
+            <h2 className="text-xl font-serif text-wine-800 mb-2">Password Updated</h2>
+            <p className="text-wine-500 text-sm mb-6">Your password has been changed successfully. You can now sign in with your new password.</p>
+            <button
+              onClick={() => {
+                setRecoveryMode(false)
+                setPasswordUpdated(false)
+                setNewPassword('')
+              }}
+              className="btn-primary w-full flex items-center justify-center gap-2"
+            >
+              <ArrowLeft size={18} /> Back to Login
+            </button>
+          </div>
+        ) : (
+          <form onSubmit={handleUpdatePassword} className="card p-6 space-y-4">
+            <div>
+              <label className="text-sm text-wine-600 mb-1.5 block">New Password</label>
+              <div className="relative">
+                <Lock size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-wine-400" />
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="input-field pl-10 pr-10"
+                  placeholder="••••••••"
+                  required
+                  minLength={6}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-wine-400 hover:text-wine-600"
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+              <p className="text-xs text-wine-400 mt-1.5">Minimum 6 characters</p>
+            </div>
+            <button
+              type="submit"
+              disabled={updatingPassword}
+              className="btn-primary w-full flex items-center justify-center gap-2"
+            >
+              {updatingPassword ? (
+                <div className="w-5 h-5 border-2 border-cream-50 border-t-transparent rounded-full animate-spin" />
+              ) : (
+                'Update Password'
+              )}
+            </button>
+          </form>
+        )}
+      </div>
+    )
   }
 
   return (
