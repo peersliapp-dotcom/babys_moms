@@ -20,14 +20,24 @@ export default function Contact() {
   const email = settings?.email ?? 'hello@babysandmoms.com'
   const address = settings?.address ?? 'Dhaka, Bangladesh'
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setSending(true)
-    setTimeout(() => {
+    const { error } = await supabase
+      .from('contact_messages')
+      .insert({
+        name: form.name,
+        email: form.email,
+        subject: form.subject,
+        message: form.message,
+      })
+    if (error) {
+      showToast('Something went wrong. Please try again.', 'error')
+    } else {
       showToast("Message sent! We'll get back to you soon.", 'success')
       setForm({ name: '', email: '', subject: '', message: '' })
-      setSending(false)
-    }, 1000)
+    }
+    setSending(false)
   }
 
   return (
