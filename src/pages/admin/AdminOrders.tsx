@@ -4,6 +4,7 @@ import { supabase, type Order } from '../../lib/supabase'
 import { formatBDT } from '../../lib/constants'
 import { useToast } from '../../contexts/ToastContext'
 import { useAuth } from '../../contexts/AuthContext'
+import AdminBackLink from '../../components/AdminBackLink'
 
 const STATUSES = ['pending', 'paid', 'processing', 'shipped', 'delivered', 'cancelled'] as const
 
@@ -76,6 +77,7 @@ export default function AdminOrders() {
 
   return (
     <div className="section-padding py-8 animate-fade-in">
+      <AdminBackLink />
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-serif text-wine-800">Orders</h1>
         {codPendingCount > 0 && (

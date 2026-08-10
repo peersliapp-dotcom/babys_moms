@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Trash2, Search, Mail, MailOpen, X } from 'lucide-react'
 import { supabase, type ContactMessage } from '../../lib/supabase'
 import { useToast } from '../../contexts/ToastContext'
+import AdminBackLink from '../../components/AdminBackLink'
 
 export default function AdminMessages() {
   const { showToast } = useToast()
@@ -65,6 +66,7 @@ export default function AdminMessages() {
 
   return (
     <div className="section-padding py-8 animate-fade-in">
+      <AdminBackLink />
       <div className="mb-8">
         <h1 className="text-3xl font-serif text-wine-800">Contact Messages</h1>
         <p className="text-sm text-wine-400 mt-1">

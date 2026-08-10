@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Search, Mail, Phone, ShoppingBag } from 'lucide-react'
 import { supabase, type Profile, type Order } from '../../lib/supabase'
 import { formatBDT } from '../../lib/constants'
+import AdminBackLink from '../../components/AdminBackLink'
 
 export default function AdminCustomers() {
   const [profiles, setProfiles] = useState<Profile[]>([])
@@ -38,6 +39,7 @@ export default function AdminCustomers() {
   // Fetch emails from auth - we can't directly, so we show what we have from profiles
   return (
     <div className="section-padding py-8 animate-fade-in">
+      <AdminBackLink />
       <h1 className="text-3xl font-serif text-wine-800 mb-8">Customers</h1>
 
       <div className="relative mb-6">

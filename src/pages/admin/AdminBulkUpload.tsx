@@ -1,8 +1,9 @@
 import { useState, useRef } from 'react'
-import { Upload, X, CheckCircle, Image as ImageIcon, AlertCircle } from 'lucide-react'
+import { Upload, X, CircleCheck as CheckCircle, Image as ImageIcon, CircleAlert as AlertCircle } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../contexts/ToastContext'
 import { useAuth } from '../../contexts/AuthContext'
+import AdminBackLink from '../../components/AdminBackLink'
 
 type UploadedImage = {
   file: File
@@ -139,6 +140,7 @@ export default function AdminBulkUpload() {
 
   return (
     <div className="section-padding py-8 animate-fade-in">
+      <AdminBackLink />
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-serif text-wine-800">Bulk Upload</h1>

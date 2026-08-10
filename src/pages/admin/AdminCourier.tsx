@@ -3,6 +3,7 @@ import { Truck, Package, Search, ExternalLink, Send } from 'lucide-react'
 import { supabase, type Order } from '../../lib/supabase'
 import { useToast } from '../../contexts/ToastContext'
 import { formatBDT } from '../../lib/constants'
+import AdminBackLink from '../../components/AdminBackLink'
 
 export default function AdminCourier() {
   const { showToast } = useToast()
@@ -92,6 +93,7 @@ export default function AdminCourier() {
 
   return (
     <div className="section-padding py-8 animate-fade-in">
+      <AdminBackLink />
       <h1 className="text-3xl font-serif text-wine-800 mb-8">Courier Management</h1>
 
       <div className="card p-5 mb-6 bg-blush-50">

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Trash2, Search, Download, Mail } from 'lucide-react'
 import { supabase, type Subscriber } from '../../lib/supabase'
 import { useToast } from '../../contexts/ToastContext'
+import AdminBackLink from '../../components/AdminBackLink'
 
 export default function AdminSubscribers() {
   const { showToast } = useToast()
@@ -58,6 +59,7 @@ export default function AdminSubscribers() {
 
   return (
     <div className="section-padding py-8 animate-fade-in">
+      <AdminBackLink />
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-serif text-wine-800">Subscribers</h1>

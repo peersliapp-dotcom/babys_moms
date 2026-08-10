@@ -3,6 +3,7 @@ import { Plus, Pencil, Trash2, X, Tag } from 'lucide-react'
 import { supabase, type Coupon } from '../../lib/supabase'
 import { formatBDT } from '../../lib/constants'
 import { useToast } from '../../contexts/ToastContext'
+import AdminBackLink from '../../components/AdminBackLink'
 
 export default function AdminCoupons() {
   const { showToast } = useToast()
@@ -73,6 +74,7 @@ export default function AdminCoupons() {
 
   return (
     <div className="section-padding py-8 animate-fade-in">
+      <AdminBackLink />
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-serif text-wine-800">Coupons</h1>
         <button onClick={openAdd} className="btn-primary flex items-center gap-2">
