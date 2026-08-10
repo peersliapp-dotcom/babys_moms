@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { supabase, type Product, type Category, type ProductVariant } from '../../lib/supabase'
 import { formatBDT } from '../../lib/constants'
 import { useToast } from '../../contexts/ToastContext'
+import ImageUploader from '../../components/ImageUploader'
 
 type VariantDraft = {
   id?: string
@@ -34,7 +35,8 @@ export default function AdminProducts() {
     description: '',
     description_bn: '',
     category_id: '',
-    images: '',
+    images: [] as string[],
+    imageUrls: '',
     videos: '',
     is_featured: false,
     is_active: true,
@@ -61,7 +63,7 @@ export default function AdminProducts() {
 
   const openAdd = () => {
     setEditing(null)
-    setForm({ name: '', slug: '', description: '', description_bn: '', category_id: '', images: '', videos: '', is_featured: false, is_active: true })
+    setForm({ name: '', slug: '', description: '', description_bn: '', category_id: '', images: [], imageUrls: '', videos: '', is_featured: false, is_active: true })
     setVariants([])
     setVariantsExpanded(false)
     setShowForm(true)
@@ -75,7 +77,8 @@ export default function AdminProducts() {
       description: product.description ?? '',
       description_bn: product.description_bn ?? '',
       category_id: product.category_id ?? '',
-      images: product.images?.join('\n') ?? '',
+      images: product.images ?? [],
+      imageUrls: '',
       videos: product.videos?.join('\n') ?? '',
       is_featured: product.is_featured,
       is_active: product.is_active,
@@ -121,13 +124,18 @@ export default function AdminProducts() {
       return
     }
 
+    const allImages = [
+      ...form.images,
+      ...form.imageUrls.split('\n').map((s) => s.trim()).filter(Boolean),
+    ]
+
     const productData = {
       name: form.name,
       slug: form.slug,
       description: form.description || null,
       description_bn: form.description_bn || null,
       category_id: form.category_id || null,
-      images: form.images.split('\n').map((s) => s.trim()).filter(Boolean),
+      images: allImages,
       videos: form.videos.split('\n').map((s) => s.trim()).filter(Boolean),
       is_featured: form.is_featured,
       is_active: form.is_active,
@@ -335,8 +343,15 @@ export default function AdminProducts() {
                 <textarea value={form.description_bn} onChange={(e) => setForm({ ...form, description_bn: e.target.value })} className="input-field min-h-24 resize-none" placeholder="বাংলায় বিবরণ লিখুন..." />
               </div>
               <div>
-                <label className="text-sm text-wine-600 mb-1.5 block">Image URLs (one per line)</label>
-                <textarea value={form.images} onChange={(e) => setForm({ ...form, images: e.target.value })} className="input-field min-h-20 resize-none" placeholder="https://images.pexels.com/..." />
+                <label className="text-sm text-wine-600 mb-1.5 block">Product Images</label>
+                <ImageUploader
+                  images={form.images}
+                  onImagesChange={(imgs) => setForm({ ...form, images: imgs })}
+                />
+              </div>
+              <div>
+                <label className="text-sm text-wine-600 mb-1.5 block">Additional Image URLs <span className="text-wine-400 font-normal">— one per line, optional</span></label>
+                <textarea value={form.imageUrls} onChange={(e) => setForm({ ...form, imageUrls: e.target.value })} className="input-field min-h-16 resize-none" placeholder="https://images.pexels.com/..." />
               </div>
               <div>
                 <label className="text-sm text-wine-600 mb-1.5 block">Video URLs (one per line) <span className="text-wine-400 font-normal">— YouTube or Facebook links</span></label>

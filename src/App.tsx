@@ -24,6 +24,8 @@ import AdminReviews from './pages/admin/AdminReviews'
 import AdminCategories from './pages/admin/AdminCategories'
 import AdminCourier from './pages/admin/AdminCourier'
 import AdminChat from './pages/admin/AdminChat'
+import AdminSubscribers from './pages/admin/AdminSubscribers'
+import AdminMessages from './pages/admin/AdminMessages'
 import ChatWidget from './components/ChatWidget'
 import About from './pages/About'
 import SizeGuide from './pages/SizeGuide'
@@ -134,6 +136,14 @@ export default function App() {
           <Route
             path="/admin/messages"
             element={<AdminRoute><AdminChat /></AdminRoute>}
+          />
+          <Route
+            path="/admin/subscribers"
+            element={<AdminRoute><AdminSubscribers /></AdminRoute>}
+          />
+          <Route
+            path="/admin/contact-messages"
+            element={<AdminRoute><AdminMessages /></AdminRoute>}
           />
           <Route path="*" element={<NotFound />} />
         </Routes>
