@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Save, Upload, Phone, Mail, MapPin, Instagram, Facebook, Youtube, Twitter, Truck, CreditCard, Send, CircleCheck as CheckCircle2, Loader as Loader2, Link2 } from 'lucide-react'
 import { supabase, supabaseUrl, type SiteSettings } from '../../lib/supabase'
 import { useToast } from '../../contexts/ToastContext'
+import AdminBackLink from '../../components/AdminBackLink'
 
 export default function AdminSettings() {
   const { showToast } = useToast()
@@ -109,6 +110,7 @@ export default function AdminSettings() {
 
   return (
     <div className="section-padding py-8 max-w-2xl mx-auto animate-fade-in">
+      <AdminBackLink />
       <h1 className="text-3xl font-serif text-wine-800 mb-8">Site Settings</h1>
 
       {/* Logo */}

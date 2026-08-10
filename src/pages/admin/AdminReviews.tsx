@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Check, X, Star, Trash2, MessageSquare } from 'lucide-react'
 import { supabase, type Review } from '../../lib/supabase'
 import { useToast } from '../../contexts/ToastContext'
+import AdminBackLink from '../../components/AdminBackLink'
 
 type ReviewWithProduct = Review & { product?: { name: string; slug: string } }
 
@@ -55,6 +56,7 @@ export default function AdminReviews() {
 
   return (
     <div className="section-padding py-8 animate-fade-in">
+      <AdminBackLink />
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-serif text-wine-800">Review Moderation</h1>

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Plus, Pencil, Trash2, X, ChevronRight, ChevronDown } from 'lucide-react'
 import { supabase, type Category } from '../../lib/supabase'
 import { useToast } from '../../contexts/ToastContext'
+import AdminBackLink from '../../components/AdminBackLink'
 
 export default function AdminCategories() {
   const { showToast } = useToast()
@@ -98,6 +99,7 @@ export default function AdminCategories() {
 
   return (
     <div className="section-padding py-8 animate-fade-in">
+      <AdminBackLink />
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-serif text-wine-800">Categories</h1>
         <button onClick={openAdd} className="btn-primary flex items-center gap-2">

@@ -3,6 +3,7 @@ import { MessageCircle, Send, Bot, User, Search } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../contexts/ToastContext'
 import { useAuth } from '../../contexts/AuthContext'
+import AdminBackLink from '../../components/AdminBackLink'
 
 interface Conversation {
   id: string
@@ -98,6 +99,7 @@ export default function AdminChat() {
 
   return (
     <div className="section-padding py-8 animate-fade-in">
+      <AdminBackLink />
       <h1 className="text-3xl font-serif text-wine-800 mb-8">Customer Messages</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-220px)] min-h-[500px]">

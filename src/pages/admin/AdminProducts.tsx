@@ -5,6 +5,7 @@ import { supabase, type Product, type Category, type ProductVariant } from '../.
 import { formatBDT } from '../../lib/constants'
 import { useToast } from '../../contexts/ToastContext'
 import ImageUploader from '../../components/ImageUploader'
+import AdminBackLink from '../../components/AdminBackLink'
 
 type VariantDraft = {
   id?: string
@@ -203,6 +204,7 @@ export default function AdminProducts() {
 
   return (
     <div className="section-padding py-8 animate-fade-in">
+      <AdminBackLink />
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <h1 className="text-3xl font-serif text-wine-800">Products</h1>
         <div className="flex gap-3">
