@@ -381,6 +381,3 @@ export default function AdminSubscribers() {
     </div>
   )
 }
-
-
-export default AdminSubscribers
