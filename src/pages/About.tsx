@@ -27,7 +27,7 @@ export default function About() {
       {/* Hero */}
       <section className="relative h-[40vh] min-h-[300px] overflow-hidden">
         <img
-          src="https://i.ibb.co.com/0VmkNg30/foraboutus.png"
+          src={settings?.about_image_url ?? '/bunot_logo.png'}
           alt="Our Story"
           className="w-full h-full object-cover"
         />

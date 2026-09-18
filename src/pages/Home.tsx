@@ -71,9 +71,8 @@ export default function Home() {
     load()
   }, [])
 
-  const defaultHero = 'https://i.ibb.co.com/v4388nf3/657371760-122097034964914680-2462231761944454697-n.jpg'
-  const heroDesktop = settings?.hero_image_url ?? defaultHero
-  const heroMobile = settings?.hero_mobile_image_url ?? settings?.hero_image_url ?? defaultHero
+  const heroDesktop = settings?.hero_image_url ?? null
+  const heroMobile = settings?.hero_mobile_image_url ?? settings?.hero_image_url ?? null
 
   return (
     <div className="animate-fade-in">
@@ -84,18 +83,22 @@ export default function Home() {
         jsonLd={homeJsonLd}
       />
       {/* Hero Section */}
-      <section className="relative h-[60vh] min-h-[420px] md:h-[70vh] md:min-h-[500px] overflow-hidden">
+      <section className="relative h-[60vh] min-h-[420px] md:h-[70vh] md:min-h-[500px] overflow-hidden bg-wine-800">
         <div className="absolute inset-0">
-          <img
-            src={heroDesktop}
-            alt="Bunot"
-            className="w-full h-full object-cover hidden md:block"
-          />
-          <img
-            src={heroMobile}
-            alt="Bunot"
-            className="w-full h-full object-cover md:hidden"
-          />
+          {heroDesktop && (
+            <img
+              src={heroDesktop}
+              alt="Bunot"
+              className="w-full h-full object-cover hidden md:block"
+            />
+          )}
+          {heroMobile && (
+            <img
+              src={heroMobile}
+              alt="Bunot"
+              className="w-full h-full object-cover md:hidden"
+            />
+          )}
           <div className="absolute inset-0 bg-gradient-to-r from-wine-900/70 via-wine-800/40 to-transparent" />
         </div>
         <div className="relative h-full flex items-center section-padding">

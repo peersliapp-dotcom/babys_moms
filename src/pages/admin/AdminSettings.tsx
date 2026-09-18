@@ -12,6 +12,7 @@ export default function AdminSettings() {
   const [uploadingLogo, setUploadingLogo] = useState(false)
   const [uploadingHero, setUploadingHero] = useState(false)
   const [uploadingHeroMobile, setUploadingHeroMobile] = useState(false)
+  const [uploadingAbout, setUploadingAbout] = useState(false)
   const [connectingTelegram, setConnectingTelegram] = useState(false)
   const [telegramConnected, setTelegramConnected] = useState(false)
 
@@ -39,6 +40,7 @@ export default function AdminSettings() {
       twitter_url: settings.twitter_url,
       hero_image_url: settings.hero_image_url,
       hero_mobile_image_url: settings.hero_mobile_image_url,
+      about_image_url: settings.about_image_url,
       pathao_api_key: settings.pathao_api_key,
       steadfast_api_key: settings.steadfast_api_key,
       courier_provider: settings.courier_provider,
@@ -81,7 +83,7 @@ export default function AdminSettings() {
     setConnectingTelegram(false)
   }
 
-  const handleImageUpload = async (file: File, field: 'logo_url' | 'hero_image_url' | 'hero_mobile_image_url', setUploading: (v: boolean) => void) => {
+  const handleImageUpload = async (file: File, field: 'logo_url' | 'hero_image_url' | 'hero_mobile_image_url' | 'about_image_url', setUploading: (v: boolean) => void) => {
     setUploading(true)
     const ext = file.name.split('.').pop() ?? 'png'
     const fileName = `${field.replace('_url', '')}-${Date.now()}.${ext}`
@@ -170,6 +172,22 @@ export default function AdminSettings() {
               </label>
             </div>
             <p className="text-xs text-wine-400 mt-2">If no mobile image is set, the desktop image will be used on mobile.</p>
+          </div>
+          <div>
+            <label className="text-sm text-wine-600 mb-1.5 block">About Page Image (recommended 1920x600px)</label>
+            <div className="flex items-center gap-4">
+              <div className="w-40 h-24 rounded-xl bg-cream-100 overflow-hidden shrink-0">
+                {settings.about_image_url ? (
+                  <img src={settings.about_image_url} alt="About" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="flex items-center justify-center h-full"><span className="text-wine-300 text-xs">No image</span></div>
+                )}
+              </div>
+              <label className="btn-secondary flex items-center gap-2 cursor-pointer">
+                <Upload size={16} /> {uploadingAbout ? 'Uploading...' : 'Upload About'}
+                <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && handleImageUpload(e.target.files[0], 'about_image_url', setUploadingAbout)} />
+              </label>
+            </div>
           </div>
         </div>
       </div>

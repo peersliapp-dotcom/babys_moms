@@ -226,6 +226,7 @@ export type SiteSettings = {
   telegram_chat_id: string | null
   telegram_bot_username: string | null
   whatsapp_number: string | null
+  about_image_url: string | null
   created_at: string
   updated_at: string
 }
