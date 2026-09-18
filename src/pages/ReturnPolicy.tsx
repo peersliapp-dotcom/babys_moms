@@ -32,7 +32,7 @@ export default function ReturnPolicy() {
             <h2 className="text-xl font-serif text-wine-800">How to Return</h2>
           </div>
           <ol className="space-y-3 text-sm text-wine-600 list-decimal list-inside">
-            <li>Email us at <strong>hello@babysandmoms.com</strong> with your order number and reason for return.</li>
+            <li>Email us at <strong>hello@bunotbd.com</strong> with your order number and reason for return.</li>
             <li>We'll send you a return authorization and instructions within 24 hours.</li>
             <li>Pack the items securely in their original packaging.</li>
             <li>Ship the package to the address provided in the return instructions.</li>

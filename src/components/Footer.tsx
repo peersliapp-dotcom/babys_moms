@@ -17,7 +17,7 @@ export default function Footer() {
 
   const logoUrl = settings?.logo_url ?? '/bmlogonew2.png'
   const phone = settings?.phone ?? '+880 1700 000000'
-  const email = settings?.email ?? 'hello@babysandmoms.com'
+  const email = settings?.email ?? 'hello@bunotbd.com'
   const address = settings?.address ?? 'Dhaka, Bangladesh'
 
   return (
@@ -26,7 +26,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
           <div>
             {logoError ? (
-              <span className="brand-title-light text-xl lg:text-2xl block mb-4">Baby&rsquo;s &amp; Mom&rsquo;s</span>
+              <span className="brand-title-light text-xl lg:text-2xl block mb-4">Bunot</span>
             ) : (
               <div className="flex items-center gap-3 mb-4">
                 <div className="relative h-14 w-auto min-w-[40px]">
@@ -38,7 +38,7 @@ export default function Footer() {
                     onError={() => setLogoError(true)}
                   />
                 </div>
-                <span className="brand-title-light text-lg lg:text-xl">Baby&rsquo;s &amp; Mom&rsquo;s</span>
+                <span className="brand-title-light text-lg lg:text-xl">Bunot</span>
               </div>
             )}
             <p className="text-sm text-cream-200/80 leading-relaxed">
@@ -99,7 +99,7 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-wine-700 mt-12 pt-6 flex flex-col md:flex-row items-center justify-between gap-3 text-sm text-cream-200/60">
-          <p>&copy; {new Date().getFullYear()} Baby's and Mom's Clothing. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} Bunot. All rights reserved.</p>
           <p className="flex items-center gap-1.5">
             Made with <Heart size={14} className="fill-blush-400 text-blush-400" /> in Bangladesh
           </p>

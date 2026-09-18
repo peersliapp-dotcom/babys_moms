@@ -164,7 +164,7 @@ export default function ProductDetail() {
   }
 
   const shareUrl = `${window.location.origin}/product/${product.slug}`
-  const shareText = `Check out ${product.name} on Baby's & Mom's Clothing!`
+  const shareText = `Check out ${product.name} on Bunot!`
 
   const copyLink = () => {
     navigator.clipboard.writeText(shareUrl)

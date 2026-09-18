@@ -25,7 +25,7 @@ export default function SignUp() {
     if (error) {
       showToast(error, 'error')
     } else {
-      showToast("Account created! Welcome to Baby's and Mom's.", 'success')
+      showToast("Account created! Welcome to Bunot.", 'success')
       navigate('/account')
     }
     setLoading(false)

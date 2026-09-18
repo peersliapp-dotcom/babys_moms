@@ -71,7 +71,7 @@ Deno.serve(async (req: Request) => {
       .select("email, site_name")
       .maybeSingle();
 
-    const fromName = settings?.site_name || "Baby's and Mom's Clothing";
+    const fromName = settings?.site_name || "Bunot";
     const fromEmail = settings?.email || "onboarding@resend.dev";
 
     const body: SendEmailRequest = await req.json();

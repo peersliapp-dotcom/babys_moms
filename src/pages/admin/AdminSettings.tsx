@@ -369,7 +369,7 @@ export default function AdminSettings() {
               value={settings.telegram_bot_username ?? ''}
               onChange={(e) => setSettings({ ...settings, telegram_bot_username: e.target.value })}
               className="input-field"
-              placeholder="babysandmoms_bot"
+              placeholder="bunot_bot"
             />
             <p className="text-xs text-wine-400 mt-1">This is the bot customers will chat with for support and order tracking.</p>
           </div>

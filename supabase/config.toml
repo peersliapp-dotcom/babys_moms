@@ -1,0 +1,17 @@
+[functions.chat-assistant]
+verify_jwt = false
+
+[functions.payment-gateway]
+verify_jwt = false
+
+[functions.send-email]
+verify_jwt = true
+
+[functions.telegram-bot]
+verify_jwt = false
+
+[functions.courier-integration]
+verify_jwt = false
+
+[functions.decrement-stock]
+verify_jwt = false

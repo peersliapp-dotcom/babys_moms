@@ -111,7 +111,7 @@ export default function Navbar() {
             <Link to="/" className="flex items-center gap-2 sm:gap-3">
               {logoError ? (
                 <span className="brand-title text-base lg:text-lg xl:text-xl">
-                  Baby&rsquo;s &amp; Mom&rsquo;s
+                  Bunot
                 </span>
               ) : (
                 <>
@@ -130,7 +130,7 @@ export default function Navbar() {
                     />
                   </div>
                   <span className="brand-title hidden sm:inline text-base lg:text-lg xl:text-xl">
-                    Baby&rsquo;s &amp; Mom&rsquo;s
+                    Bunot
                   </span>
                 </>
               )}

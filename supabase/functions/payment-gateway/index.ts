@@ -179,7 +179,7 @@ Deno.serve(async (req: Request) => {
         formData.append("cus_add1", customer_info?.address ?? "");
         formData.append("cus_city", customer_info?.city ?? "");
         formData.append("cus_country", "Bangladesh");
-        formData.append("product_name", "Baby & Mom Products");
+        formData.append("product_name", "Bunot Products");
         formData.append("product_category", "Clothing");
         formData.append("product_profile", "general");
         formData.append("ship_name", customer_info?.full_name ?? "Customer");

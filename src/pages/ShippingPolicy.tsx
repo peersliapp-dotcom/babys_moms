@@ -52,7 +52,7 @@ export default function ShippingPolicy() {
         </section>
 
         <div className="bg-blush-50 rounded-xl p-6 text-sm text-wine-600">
-          <p>For any delivery-related questions, please contact us at <strong>hello@babysandmoms.com</strong> or call <strong>+880 1700 000000</strong>.</p>
+          <p>For any delivery-related questions, please contact us at <strong>hello@bunotbd.com</strong> or call <strong>+880 1700 000000</strong>.</p>
         </div>
       </div>
     </div>

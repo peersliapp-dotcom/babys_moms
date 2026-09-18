@@ -478,8 +478,8 @@ export default function Shop() {
         title={shopTitle}
         description={
           activeCategory
-            ? `Shop ${activeCategory.toLowerCase()} clothing at Baby's and Mom's Clothing. Premium, soft and safe fabrics delivered across Bangladesh.`
-            : "Browse the full collection of premium baby and maternity clothing at Baby's and Mom's Clothing. Soft, safe fabrics delivered across Bangladesh."
+            ? `Shop ${activeCategory.toLowerCase()} clothing at Bunot. Premium, soft and safe fabrics delivered across Bangladesh.`
+            : "Browse the full collection of premium baby and maternity clothing at Bunot. Soft, safe fabrics delivered across Bangladesh."
         }
         path={selectedCategory ? `/shop/${selectedCategory}` : '/shop'}
         noindex={!!searchQuery}

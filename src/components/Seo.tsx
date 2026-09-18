@@ -1,7 +1,7 @@
 import { Helmet } from 'react-helmet-async'
 
-const SITE_NAME = "Baby's and Mom's Clothing"
-const SITE_URL = 'https://babysandmoms.net'
+const SITE_NAME = "Bunot"
+const SITE_URL = 'https://bunotbd.com'
 const DEFAULT_IMAGE = 'https://i.ibb.co.com/v4388nf3/657371760-122097034964914680-2462231761944454697-n.jpg'
 const DEFAULT_DESCRIPTION =
   "Premium baby and maternity clothing from Bangladesh, crafted with the softest fabrics and utmost care. Made with love, for you & your little one."

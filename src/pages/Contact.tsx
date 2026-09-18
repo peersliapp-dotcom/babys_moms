@@ -17,7 +17,7 @@ export default function Contact() {
   }, [])
 
   const phone = settings?.phone ?? '+880 1700 000000'
-  const email = settings?.email ?? 'hello@babysandmoms.com'
+  const email = settings?.email ?? 'hello@bunotbd.com'
   const address = settings?.address ?? 'Dhaka, Bangladesh'
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -44,7 +44,7 @@ export default function Contact() {
     <div className="section-padding py-12 max-w-5xl mx-auto animate-fade-in">
       <Seo
         title="Contact Us"
-        description="Get in touch with Baby's and Mom's Clothing. We respond within 24 hours to questions about orders, sizing, shipping and returns across Bangladesh."
+        description="Get in touch with Bunot. We respond within 24 hours to questions about orders, sizing, shipping and returns across Bangladesh."
         path="/contact"
       />
       <div className="text-center mb-10">

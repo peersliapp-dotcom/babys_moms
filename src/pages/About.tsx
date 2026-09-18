@@ -14,14 +14,14 @@ export default function About() {
   }, [])
 
   const phone = settings?.phone ?? '+880 1700 000000'
-  const email = settings?.email ?? 'hello@babysandmoms.com'
+  const email = settings?.email ?? 'hello@bunotbd.com'
   const address = settings?.address ?? 'Dhaka, Bangladesh'
 
   return (
     <div className="animate-fade-in">
       <Seo
         title="Our Story"
-        description="Learn about Baby's and Mom's Clothing — a Bangladesh brand crafting premium baby and maternity wear with the softest, safest fabrics, made with love."
+        description="Learn about Bunot — a Bangladesh brand crafting premium baby and maternity wear with the softest, safest fabrics, made with love."
         path="/about"
       />
       {/* Hero */}
@@ -46,7 +46,7 @@ export default function About() {
             "Every piece we create is a hug for your little one, and a celebration of you."
           </p>
           <p className="text-wine-600 leading-relaxed mb-6">
-            Baby's and Mom's Clothing was born from a simple idea: that the clothes touching a baby's
+            Bunot was born from a simple idea: that the clothes touching a baby's
             delicate skin should be as soft, safe, and beautiful as the love they're wrapped in. Founded
             in Bangladesh by a mother who couldn't find the quality she wanted for her own children, our
             brand has grown into a trusted name for parents across the country.

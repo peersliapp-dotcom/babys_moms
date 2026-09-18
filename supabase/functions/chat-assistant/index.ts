@@ -9,7 +9,7 @@ const corsHeaders = {
 
 // Knowledge base for the store — used to answer common questions
 const STORE_KB = {
-  name: "Baby's & Mom's Clothing",
+  name: "Bunot",
   shipping: "We offer free shipping on orders over 2000 BDT. Standard delivery takes 2-5 business days within Bangladesh.",
   returns: "You can return any item within 7 days of delivery, provided it's unworn and in original packaging with tags.",
   payment: "We accept bKash, Nagad, SSLCommerz (card), and Cash on Delivery (COD). COD orders are verified via phone call before dispatch.",

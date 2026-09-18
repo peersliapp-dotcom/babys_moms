@@ -210,7 +210,7 @@ Deno.serve(async (req: Request) => {
       if (lowerText === "/start") {
         await sendTelegramMessage(
           token, chatId,
-          "👋 Welcome to *Baby's & Mom's Clothing*!\n\nI can help you track your order. Just send your order number (e.g. *BM-000123*).\n\nYou can also type *help* to see what I can do.",
+          "👋 Welcome to *Bunot*!\n\nI can help you track your order. Just send your order number (e.g. *BM-000123*).\n\nYou can also type *help* to see what I can do.",
           { inline_keyboard: [[{ text: "📦 Track My Order", callback_data: "track_prompt" }]] }
         );
         return new Response(JSON.stringify({ success: true }), {

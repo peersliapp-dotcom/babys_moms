@@ -9,9 +9,9 @@ import { useToast } from '../contexts/ToastContext'
 const homeJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
-  name: "Baby's and Mom's Clothing",
-  url: 'https://babysandmoms.net',
-  logo: 'https://babysandmoms.net/bmlogonew2.png',
+  name: "Bunot",
+  url: 'https://bunotbd.com',
+  logo: 'https://bunotbd.com/bmlogonew2.png',
   description:
     "Premium baby and maternity clothing from Bangladesh, crafted with the softest fabrics and utmost care.",
   areaServed: 'BD',
@@ -88,12 +88,12 @@ export default function Home() {
         <div className="absolute inset-0">
           <img
             src={heroDesktop}
-            alt="Baby's and Mom's Clothing"
+            alt="Bunot"
             className="w-full h-full object-cover hidden md:block"
           />
           <img
             src={heroMobile}
-            alt="Baby's and Mom's Clothing"
+            alt="Bunot"
             className="w-full h-full object-cover md:hidden"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-wine-900/70 via-wine-800/40 to-transparent" />
